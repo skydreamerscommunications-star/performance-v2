@@ -19,6 +19,7 @@
     }
   </style>
 </head>
+
 <body class="min-h-screen">
 
 <!-- HEADER -->
@@ -44,10 +45,7 @@
 <script>
 /* ================= CONFIG ================= */
 
-// Hardcoded identity (intentionally simple)
 const CURRENT_AGENT = "ME";
-
-// Firebase node for My Performance
 const FIREBASE_NODE = "dashboard_v2";
 
 /* ================= FIREBASE ================= */
@@ -58,7 +56,11 @@ firebase.initializeApp({
 
 /* ================= STATE ================= */
 
-let data = null;
+// Always start with safe defaults
+let data = {
+  agent: {},
+  lastSubmission: null
+};
 
 /* ================= HELPERS ================= */
 
@@ -73,14 +75,14 @@ function card(label, value, hint = "") {
 }
 
 function fmt(num) {
-  return (num || 0).toFixed(2);
+  return Number(num || 0).toFixed(2);
 }
 
 function duration(sec) {
   if (!sec) return "0:00";
   const m = Math.floor(sec / 60);
   const s = sec % 60;
-  return `${m}:${s.toString().padStart(2,"0")}`;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 /* ================= RENDER ================= */
@@ -89,7 +91,7 @@ function renderMyPerformance() {
   const container = document.getElementById("metrics");
   container.innerHTML = "";
 
-  const me = data?.agent?.[CURRENT_AGENT] || {
+  const me = data.agent[CURRENT_AGENT] || {
     submissions: 0,
     qualified: 0,
     fph: 0,
@@ -97,39 +99,8 @@ function renderMyPerformance() {
     avgTalkTime: 0
   };
 
-  container.innerHTML += card(
-    "My Submissions",
-    me.submissions,
-    "Total submitted in this shift"
-  );
-
-  container.innerHTML += card(
-    "Qualified",
-    me.qualified,
-    "Approved or enrolled"
-  );
-
-  container.innerHTML += card(
-    "FPH",
-    fmt(me.fph),
-    "Forms per hour"
-  );
-
-  container.innerHTML += card(
-    "SPH",
-    fmt(me.sph),
-    "Sales per hour"
-  );
-
-  container.innerHTML += card(
-    "Avg Talk Time",
-    duration(me.avgTalkTime),
-    "Per submitted call"
-  );
-}
-
-  container.innerHTML += card("My Submissions", me.submissions);
-  container.innerHTML += card("Qualified", me.qualified);
+  container.innerHTML += card("My Submissions", me.submissions, "This shift");
+  container.innerHTML += card("Qualified", me.qualified, "Approved or enrolled");
   container.innerHTML += card("FPH", fmt(me.fph), "Forms per hour");
   container.innerHTML += card("SPH", fmt(me.sph), "Sales per hour");
   container.innerHTML += card(
@@ -140,8 +111,6 @@ function renderMyPerformance() {
 }
 
 function render() {
-  if (!data) return;
-
   document.getElementById("lastSubmission").textContent =
     data.lastSubmission
       ? new Date(data.lastSubmission).toLocaleString()
@@ -150,12 +119,20 @@ function render() {
   renderMyPerformance();
 }
 
-/* ================= DATA ================= */
+/* ================= INITIAL RENDER ================= */
+
+// Render immediately (IMPORTANT)
+render();
+
+/* ================= FIREBASE LISTENER ================= */
 
 firebase.database()
   .ref(`${FIREBASE_NODE}/live`)
   .on("value", snapshot => {
-    data = snapshot.val();
+    const incoming = snapshot.val();
+    if (incoming) {
+      data = incoming;
+    }
     render();
   });
 </script>
