@@ -21,7 +21,6 @@
 
 <body class="min-h-screen">
 
-<!-- HEADER -->
 <header class="bg-blue-600 text-white px-6 py-4">
   <h1 class="text-lg font-bold">Sky Dreamers</h1>
   <p class="text-sm text-blue-100">My Performance</p>
@@ -29,11 +28,18 @@
 
 <main class="max-w-3xl mx-auto px-6 py-8 space-y-10">
 
-  <!-- ZONE A: ORIENTATION -->
-  <section class="bg-white rounded-xl shadow p-6 space-y-1">
-    <div class="text-sm text-gray-500">Status</div>
-    <div id="statusText" class="text-xl font-semibold">—</div>
-    <div id="statusHint" class="text-sm text-gray-400">—</div>
+  <!-- ZONE A: SHIFT TIMELINE -->
+  <section class="bg-white rounded-xl shadow p-6 space-y-4">
+    <div class="text-sm text-gray-500">Shift Timeline</div>
+
+    <div class="flex justify-between text-sm">
+      <span id="step-not-started">Not Started</span>
+      <span id="step-in-progress">In Progress</span>
+      <span id="step-cooling">Cooling Down</span>
+      <span id="step-ended">Ended</span>
+    </div>
+
+    <div id="shiftHint" class="text-sm text-gray-400"></div>
   </section>
 
   <!-- ZONE B: MOMENTUM STREAM -->
@@ -42,20 +48,21 @@
       Momentum
     </h2>
 
-    <div id="stream" class="bg-white rounded-xl shadow p-4 space-y-3 text-sm">
-      <!-- events injected here -->
-    </div>
+    <div id="stream" class="bg-white rounded-xl shadow p-4 space-y-3 text-sm"></div>
   </section>
 
   <!-- ZONE C: CONTEXT -->
-  <section class="bg-white rounded-xl shadow p-4 grid grid-cols-2 text-center">
-    <div>
-      <div class="text-xs text-gray-500">Submissions Today</div>
-      <div id="subsCount" class="text-xl font-bold">0</div>
-    </div>
-    <div>
-      <div class="text-xs text-gray-500">Qualified Today</div>
-      <div id="qualCount" class="text-xl font-bold">0</div>
+  <section class="bg-white rounded-xl shadow p-4 text-center">
+    <div class="text-xs text-gray-500 mb-2">Today so far</div>
+    <div class="flex justify-around">
+      <div>
+        <div class="text-xl font-bold" id="subsCount">0</div>
+        <div class="text-xs text-gray-500">Submissions</div>
+      </div>
+      <div>
+        <div class="text-xl font-bold" id="qualCount">0</div>
+        <div class="text-xs text-gray-500">Qualified</div>
+      </div>
     </div>
   </section>
 
@@ -83,37 +90,43 @@ let state = {
 
 /* ================= HELPERS ================= */
 
-function minutesAgo(ts) {
+function minsAgo(ts) {
   return Math.floor((Date.now() - ts) / 60000);
 }
 
-/* ================= ORIENTATION ================= */
+function setActiveStep(stepId) {
+  ["step-not-started", "step-in-progress", "step-cooling", "step-ended"]
+    .forEach(id => {
+      const el = document.getElementById(id);
+      el.className = "text-gray-400";
+    });
 
-function renderOrientation() {
-  const last = state.lastSubmission
-    ? new Date(state.lastSubmission)
-    : null;
+  document.getElementById(stepId).className =
+    "text-blue-600 font-semibold";
+}
 
-  const statusEl = document.getElementById("statusText");
-  const hintEl = document.getElementById("statusHint");
+/* ================= SHIFT LOGIC ================= */
 
-  if (!last) {
-    statusEl.textContent = "Not Started";
-    hintEl.textContent = "Your shift hasn’t begun yet.";
+function renderShift() {
+  const hint = document.getElementById("shiftHint");
+
+  if (!state.lastSubmission) {
+    setActiveStep("step-not-started");
+    hint.textContent = "Your shift hasn’t begun yet.";
     return;
   }
 
-  const mins = minutesAgo(last);
+  const mins = minsAgo(new Date(state.lastSubmission));
 
   if (mins <= 15) {
-    statusEl.textContent = "In Progress";
-    hintEl.textContent = "You’re inside an active window.";
+    setActiveStep("step-in-progress");
+    hint.textContent = "You are inside an active working window.";
   } else if (mins <= 45) {
-    statusEl.textContent = "Cooling Down";
-    hintEl.textContent = "Momentum is slowing.";
+    setActiveStep("step-cooling");
+    hint.textContent = "Momentum is slowing. A small action helps.";
   } else {
-    statusEl.textContent = "Stalled";
-    hintEl.textContent = "No recent activity detected.";
+    setActiveStep("step-ended");
+    hint.textContent = "No recent activity detected.";
   }
 }
 
@@ -125,8 +138,8 @@ function renderStream() {
 
   if (!state.raw.length) {
     box.innerHTML = `
-      <div class="text-gray-400 text-sm">
-        No activity yet. Once you take action, it will appear here.
+      <div class="text-gray-400">
+        No activity yet — your first submission will start the shift.
       </div>
     `;
     return;
@@ -134,9 +147,14 @@ function renderStream() {
 
   state.raw.slice(0, 5).forEach(e => {
     box.innerHTML += `
-      <div class="flex justify-between">
-        <div>${e.type}</div>
-        <div class="text-gray-400">${e.ago} min ago</div>
+      <div>
+        <div class="flex justify-between">
+          <span>${e.type}</span>
+          <span class="text-gray-400">${e.ago} min ago</span>
+        </div>
+        <div class="text-xs text-gray-400">
+          ${e.note}
+        </div>
       </div>
     `;
   });
@@ -153,7 +171,7 @@ function renderContext() {
 /* ================= RENDER ================= */
 
 function renderAll() {
-  renderOrientation();
+  renderShift();
   renderStream();
   renderContext();
 }
@@ -169,10 +187,13 @@ firebase.database()
     state.agent = d.agent || {};
     state.lastSubmission = d.lastSubmission || null;
 
-    // TEMP: fake stream using lastSubmission
     if (d.lastSubmission) {
       state.raw = [
-        { type: "Submission submitted", ago: minutesAgo(new Date(d.lastSubmission)) }
+        {
+          type: "Submission submitted",
+          ago: minsAgo(new Date(d.lastSubmission)),
+          note: "This restarted your momentum"
+        }
       ];
     }
 
