@@ -89,19 +89,44 @@ function renderMyPerformance() {
   const container = document.getElementById("metrics");
   container.innerHTML = "";
 
-  const me = data?.agent?.[CURRENT_AGENT];
+  const me = data?.agent?.[CURRENT_AGENT] || {
+    submissions: 0,
+    qualified: 0,
+    fph: 0,
+    sph: 0,
+    avgTalkTime: 0
+  };
 
-  if (!me) {
-    container.innerHTML = `
-      <div class="bg-white rounded-xl shadow p-6 text-center text-gray-500 col-span-full">
-        No activity yet for this shift.
-        <div class="text-xs mt-2">
-          Once you submit calls, your performance will appear here automatically.
-        </div>
-      </div>
-    `;
-    return;
-  }
+  container.innerHTML += card(
+    "My Submissions",
+    me.submissions,
+    "Total submitted in this shift"
+  );
+
+  container.innerHTML += card(
+    "Qualified",
+    me.qualified,
+    "Approved or enrolled"
+  );
+
+  container.innerHTML += card(
+    "FPH",
+    fmt(me.fph),
+    "Forms per hour"
+  );
+
+  container.innerHTML += card(
+    "SPH",
+    fmt(me.sph),
+    "Sales per hour"
+  );
+
+  container.innerHTML += card(
+    "Avg Talk Time",
+    duration(me.avgTalkTime),
+    "Per submitted call"
+  );
+}
 
   container.innerHTML += card("My Submissions", me.submissions);
   container.innerHTML += card("Qualified", me.qualified);
