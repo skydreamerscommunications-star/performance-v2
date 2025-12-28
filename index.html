@@ -28,7 +28,7 @@
   <p class="text-sm text-blue-100">My Performance</p>
 </header>
 
-<!-- CONTENT -->
+<!-- MAIN -->
 <main class="max-w-4xl mx-auto p-6 space-y-6">
 
   <!-- LAST ACTIVITY -->
@@ -43,26 +43,33 @@
 </main>
 
 <script>
-/* ================= CONFIG ================= */
+/* =====================================================
+   CONFIG
+===================================================== */
 
-const CURRENT_AGENT = "ME";
-const FIREBASE_NODE = "dashboard_v2";
+const CURRENT_AGENT = "ME";                // hardcoded for now
+const FIREBASE_NODE = "dashboard_v2";       // existing backend path
 
-/* ================= FIREBASE ================= */
+/* =====================================================
+   FIREBASE INIT
+===================================================== */
 
 firebase.initializeApp({
   databaseURL: "https://performance-dashboard-c7017-default-rtdb.firebaseio.com"
 });
 
-/* ================= STATE ================= */
+/* =====================================================
+   STATE (SAFE DEFAULTS)
+===================================================== */
 
-// Always start with safe defaults
-let data = {
+let state = {
   agent: {},
   lastSubmission: null
 };
 
-/* ================= HELPERS ================= */
+/* =====================================================
+   HELPERS
+===================================================== */
 
 function card(label, value, hint = "") {
   return `
@@ -74,64 +81,117 @@ function card(label, value, hint = "") {
   `;
 }
 
-function fmt(num) {
-  return Number(num || 0).toFixed(2);
+function timeAgo(ts) {
+  if (!ts) return "—";
+  const diff = Date.now() - ts.getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "Just now";
+  if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m ago`;
 }
 
-function duration(sec) {
-  if (!sec) return "0:00";
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
+function durationSince(ts) {
+  if (!ts) return "—";
+  const diff = Date.now() - ts.getTime();
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(m / 60);
+  return h > 0 ? `${h}h ${m % 60}m` : `${m}m`;
 }
 
-/* ================= RENDER ================= */
+function momentum(lastTs) {
+  if (!lastTs) return { label: "Cold", color: "text-red-600" };
+
+  const mins = (Date.now() - lastTs.getTime()) / 60000;
+
+  if (mins <= 15) return { label: "Active", color: "text-green-600" };
+  if (mins <= 45) return { label: "Warming", color: "text-yellow-600" };
+  return { label: "Cold", color: "text-red-600" };
+}
+
+/* =====================================================
+   RENDER
+===================================================== */
 
 function renderMyPerformance() {
   const container = document.getElementById("metrics");
   container.innerHTML = "";
 
-  const me = data.agent[CURRENT_AGENT] || {
+  const me = state.agent[CURRENT_AGENT] || {
     submissions: 0,
-    qualified: 0,
-    fph: 0,
-    sph: 0,
-    avgTalkTime: 0
+    qualified: 0
   };
 
-  container.innerHTML += card("My Submissions", me.submissions, "This shift");
-  container.innerHTML += card("Qualified", me.qualified, "Approved or enrolled");
-  container.innerHTML += card("FPH", fmt(me.fph), "Forms per hour");
-  container.innerHTML += card("SPH", fmt(me.sph), "Sales per hour");
+  const lastTs = state.lastSubmission
+    ? new Date(state.lastSubmission)
+    : null;
+
+  const m = momentum(lastTs);
+
+  // Momentum (state-based)
+  container.innerHTML += `
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-sm text-gray-500">Momentum</div>
+      <div class="text-2xl font-bold ${m.color}">${m.label}</div>
+      <div class="text-xs text-gray-400 mt-1">
+        Based on recent activity
+      </div>
+    </div>
+  `;
+
+  // Last action
   container.innerHTML += card(
-    "Avg Talk Time",
-    duration(me.avgTalkTime),
-    "Per submitted call"
+    "Last Action",
+    timeAgo(lastTs),
+    "Most recent submission"
+  );
+
+  // Submissions
+  container.innerHTML += card(
+    "Submissions",
+    me.submissions,
+    "Today"
+  );
+
+  // Qualified
+  container.innerHTML += card(
+    "Qualified",
+    me.qualified,
+    "Today"
+  );
+
+  // Flow time
+  container.innerHTML += card(
+    "Flow Time",
+    durationSince(lastTs),
+    lastTs ? "Since last action" : "No activity yet"
   );
 }
 
 function render() {
   document.getElementById("lastSubmission").textContent =
-    data.lastSubmission
-      ? new Date(data.lastSubmission).toLocaleString()
+    state.lastSubmission
+      ? new Date(state.lastSubmission).toLocaleString()
       : "—";
 
   renderMyPerformance();
 }
 
-/* ================= INITIAL RENDER ================= */
+/* =====================================================
+   INITIAL RENDER (IMPORTANT)
+===================================================== */
 
-// Render immediately (IMPORTANT)
 render();
 
-/* ================= FIREBASE LISTENER ================= */
+/* =====================================================
+   FIREBASE LISTENER
+===================================================== */
 
 firebase.database()
   .ref(`${FIREBASE_NODE}/live`)
-  .on("value", snapshot => {
-    const incoming = snapshot.val();
-    if (incoming) {
-      data = incoming;
+  .on("value", snap => {
+    if (snap.val()) {
+      state = snap.val();
     }
     render();
   });
