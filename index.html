@@ -7,10 +7,6 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
   <style>
     body {
       font-family: Inter, system-ui, sans-serif;
@@ -21,187 +17,115 @@
 
 <body class="min-h-screen">
 
+<!-- HEADER -->
 <header class="bg-blue-600 text-white px-6 py-4">
   <h1 class="text-lg font-bold">Sky Dreamers</h1>
   <p class="text-sm text-blue-100">My Performance</p>
 </header>
 
-<main class="max-w-3xl mx-auto px-6 py-8 space-y-10">
+<!-- MAIN -->
+<main class="max-w-3xl mx-auto px-6 py-8 space-y-12">
 
-  <!-- ZONE A: SHIFT TIMELINE -->
-  <section class="bg-white rounded-xl shadow p-6 space-y-4">
-    <div class="text-sm text-gray-500">Shift Timeline</div>
-
-    <div class="flex justify-between text-sm">
-      <span id="step-not-started">Not Started</span>
-      <span id="step-in-progress">In Progress</span>
-      <span id="step-cooling">Cooling Down</span>
-      <span id="step-ended">Ended</span>
+  <!-- ===================== -->
+  <!-- ZONE 1: SHIFT STATE -->
+  <!-- ===================== -->
+  <section class="bg-white rounded-2xl shadow p-6 space-y-4">
+    <div class="text-xs uppercase tracking-wide text-gray-400">
+      Shift State
     </div>
 
-    <div id="shiftHint" class="text-sm text-gray-400"></div>
+    <div class="flex justify-between items-center text-sm">
+      <div class="flex flex-col items-center gap-1">
+        <div class="w-3 h-3 rounded-full bg-blue-600"></div>
+        <span class="text-blue-600 font-medium">In Progress</span>
+      </div>
+
+      <div class="flex flex-col items-center gap-1 opacity-40">
+        <div class="w-3 h-3 rounded-full bg-gray-400"></div>
+        <span>Cooling</span>
+      </div>
+
+      <div class="flex flex-col items-center gap-1 opacity-40">
+        <div class="w-3 h-3 rounded-full bg-gray-400"></div>
+        <span>Ended</span>
+      </div>
+    </div>
+
+    <div class="text-sm text-gray-500">
+      You’re inside an active working window.
+    </div>
   </section>
 
-  <!-- ZONE B: MOMENTUM STREAM -->
-  <section class="space-y-3">
-    <h2 class="text-sm uppercase tracking-wide text-gray-500">
+  <!-- ========================= -->
+  <!-- ZONE 2: MOMENTUM STREAM -->
+  <!-- ========================= -->
+  <section class="space-y-4">
+    <div class="text-xs uppercase tracking-wide text-gray-400">
       Momentum
-    </h2>
+    </div>
 
-    <div id="stream" class="bg-white rounded-xl shadow p-4 space-y-3 text-sm"></div>
+    <div class="bg-white rounded-2xl shadow p-6 space-y-5">
+
+      <!-- Timeline item -->
+      <div class="flex gap-4">
+        <div class="flex flex-col items-center">
+          <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+          <div class="flex-1 w-px bg-gray-200 mt-2"></div>
+        </div>
+
+        <div class="flex-1">
+          <div class="flex justify-between text-sm">
+            <span class="font-medium">Submission submitted</span>
+            <span class="text-gray-400">12 min ago</span>
+          </div>
+          <div class="text-xs text-gray-400 mt-1">
+            This restarted your momentum
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline item -->
+      <div class="flex gap-4">
+        <div class="flex flex-col items-center">
+          <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+        </div>
+
+        <div class="flex-1">
+          <div class="flex justify-between text-sm">
+            <span class="font-medium">Submission submitted</span>
+            <span class="text-gray-400">38 min ago</span>
+          </div>
+          <div class="text-xs text-gray-400 mt-1">
+            Maintained continuity
+          </div>
+        </div>
+      </div>
+
+    </div>
   </section>
 
-  <!-- ZONE C: CONTEXT -->
-  <section class="bg-white rounded-xl shadow p-4 text-center">
-    <div class="text-xs text-gray-500 mb-2">Today so far</div>
-    <div class="flex justify-around">
+  <!-- ===================== -->
+  <!-- ZONE 3: TODAY SO FAR -->
+  <!-- ===================== -->
+  <section class="bg-white rounded-2xl shadow p-6">
+    <div class="text-xs uppercase tracking-wide text-gray-400 mb-4">
+      Today, so far
+    </div>
+
+    <div class="flex justify-around text-center">
       <div>
-        <div class="text-xl font-bold" id="subsCount">0</div>
+        <div class="text-2xl font-bold">4</div>
         <div class="text-xs text-gray-500">Submissions</div>
       </div>
+
       <div>
-        <div class="text-xl font-bold" id="qualCount">0</div>
+        <div class="text-2xl font-bold">1</div>
         <div class="text-xs text-gray-500">Qualified</div>
       </div>
     </div>
   </section>
 
 </main>
-
-<script>
-/* ================= CONFIG ================= */
-
-const FIREBASE_NODE = "dashboard_v2";
-const CURRENT_AGENT = "ME";
-
-/* ================= FIREBASE ================= */
-
-firebase.initializeApp({
-  databaseURL: "https://performance-dashboard-c7017-default-rtdb.firebaseio.com"
-});
-
-/* ================= STATE ================= */
-
-let state = {
-  agent: {},
-  lastSubmission: null,
-  raw: []
-};
-
-/* ================= HELPERS ================= */
-
-function minsAgo(ts) {
-  return Math.floor((Date.now() - ts) / 60000);
-}
-
-function setActiveStep(stepId) {
-  ["step-not-started", "step-in-progress", "step-cooling", "step-ended"]
-    .forEach(id => {
-      const el = document.getElementById(id);
-      el.className = "text-gray-400";
-    });
-
-  document.getElementById(stepId).className =
-    "text-blue-600 font-semibold";
-}
-
-/* ================= SHIFT LOGIC ================= */
-
-function renderShift() {
-  const hint = document.getElementById("shiftHint");
-
-  if (!state.lastSubmission) {
-    setActiveStep("step-not-started");
-    hint.textContent = "Your shift hasn’t begun yet.";
-    return;
-  }
-
-  const mins = minsAgo(new Date(state.lastSubmission));
-
-  if (mins <= 15) {
-    setActiveStep("step-in-progress");
-    hint.textContent = "You are inside an active working window.";
-  } else if (mins <= 45) {
-    setActiveStep("step-cooling");
-    hint.textContent = "Momentum is slowing. A small action helps.";
-  } else {
-    setActiveStep("step-ended");
-    hint.textContent = "No recent activity detected.";
-  }
-}
-
-/* ================= STREAM ================= */
-
-function renderStream() {
-  const box = document.getElementById("stream");
-  box.innerHTML = "";
-
-  if (!state.raw.length) {
-    box.innerHTML = `
-      <div class="text-gray-400">
-        No activity yet — your first submission will start the shift.
-      </div>
-    `;
-    return;
-  }
-
-  state.raw.slice(0, 5).forEach(e => {
-    box.innerHTML += `
-      <div>
-        <div class="flex justify-between">
-          <span>${e.type}</span>
-          <span class="text-gray-400">${e.ago} min ago</span>
-        </div>
-        <div class="text-xs text-gray-400">
-          ${e.note}
-        </div>
-      </div>
-    `;
-  });
-}
-
-/* ================= CONTEXT ================= */
-
-function renderContext() {
-  const me = state.agent[CURRENT_AGENT] || {};
-  document.getElementById("subsCount").textContent = me.submissions || 0;
-  document.getElementById("qualCount").textContent = me.qualified || 0;
-}
-
-/* ================= RENDER ================= */
-
-function renderAll() {
-  renderShift();
-  renderStream();
-  renderContext();
-}
-
-/* ================= FIREBASE ================= */
-
-firebase.database()
-  .ref(`${FIREBASE_NODE}/live`)
-  .on("value", snap => {
-    if (!snap.val()) return;
-
-    const d = snap.val();
-    state.agent = d.agent || {};
-    state.lastSubmission = d.lastSubmission || null;
-
-    if (d.lastSubmission) {
-      state.raw = [
-        {
-          type: "Submission submitted",
-          ago: minsAgo(new Date(d.lastSubmission)),
-          note: "This restarted your momentum"
-        }
-      ];
-    }
-
-    renderAll();
-  });
-
-renderAll();
-</script>
 
 </body>
 </html>
