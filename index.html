@@ -208,7 +208,7 @@ function renderStates() {
 
 /* ================= DATA ================= */
 
-firebase.database().ref(`${"dashboard_v2/live"}/live`).on("value", snap => {
+firebase.database().ref(`${"dashboard_v2"}/live`).on("value", snap => {
   data = snap.val();
   render();
 });
