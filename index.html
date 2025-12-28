@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sky Dreamers • Performance</title>
+  <title>Sky Dreamers • My Performance</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Tailwind -->
@@ -13,77 +13,41 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <style>
-    body { font-family: Inter, system-ui, sans-serif; background:#f8fafc }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: #f8fafc;
+    }
   </style>
 </head>
 <body class="min-h-screen">
 
 <!-- HEADER -->
-<header class="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
-  <div>
-    <h1 class="text-lg font-bold">Sky Dreamers</h1>
-    <p class="text-sm text-blue-100">Performance</p>
-  </div>
-
-  <div class="flex gap-2">
-    <button id="btnMe" onclick="setMode('me')"
-      class="px-4 py-1 rounded bg-white text-blue-600 font-semibold">
-      My Performance
-    </button>
-    <button id="btnTeam" onclick="setMode('team')"
-      class="px-4 py-1 rounded bg-blue-500 text-white">
-      Team Performance
-    </button>
-  </div>
+<header class="bg-blue-600 text-white px-6 py-4">
+  <h1 class="text-lg font-bold">Sky Dreamers</h1>
+  <p class="text-sm text-blue-100">My Performance</p>
 </header>
 
 <!-- CONTENT -->
-<main class="max-w-5xl mx-auto p-6 space-y-6">
+<main class="max-w-4xl mx-auto p-6 space-y-6">
 
-  <!-- STATUS -->
+  <!-- LAST ACTIVITY -->
   <div class="text-sm text-gray-500">
-    Last submission:
+    Last activity:
     <span id="lastSubmission" class="font-medium text-gray-700">—</span>
   </div>
 
   <!-- METRICS -->
-  <div id="metrics" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <!-- Cards injected here -->
-  </div>
-
-  <!-- TEAM ONLY -->
-  <section id="teamSection" class="hidden space-y-6">
-
-    <!-- Campaign Health -->
-    <div class="bg-white rounded-xl shadow p-4">
-      <h2 class="font-bold mb-3">Campaign Health</h2>
-      <table class="w-full text-sm">
-        <thead class="text-gray-500 border-b">
-          <tr>
-            <th class="text-left py-2">Campaign</th>
-            <th>Subs</th>
-            <th>Qualified</th>
-            <th>FPH</th>
-          </tr>
-        </thead>
-        <tbody id="campaignTable"></tbody>
-      </table>
-    </div>
-
-    <!-- State Distribution -->
-    <div class="bg-white rounded-xl shadow p-4">
-      <h2 class="font-bold mb-3">State Distribution</h2>
-      <div id="statesGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-    </div>
-
-  </section>
+  <div id="metrics" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
 
 </main>
 
 <script>
 /* ================= CONFIG ================= */
 
-const CURRENT_AGENT = "ME"; // ← change later
+// Hardcoded identity (intentionally simple)
+const CURRENT_AGENT = "ME";
+
+// Firebase node for My Performance
 const FIREBASE_NODE = "dashboard_v2";
 
 /* ================= FIREBASE ================= */
@@ -94,17 +58,16 @@ firebase.initializeApp({
 
 /* ================= STATE ================= */
 
-let mode = "me";
 let data = null;
 
 /* ================= HELPERS ================= */
 
-function card(label, value, sub = "") {
+function card(label, value, hint = "") {
   return `
     <div class="bg-white rounded-xl shadow p-4">
       <div class="text-sm text-gray-500">${label}</div>
       <div class="text-2xl font-bold">${value}</div>
-      ${sub ? `<div class="text-xs text-gray-400">${sub}</div>` : ""}
+      ${hint ? `<div class="text-xs text-gray-400 mt-1">${hint}</div>` : ""}
     </div>
   `;
 }
@@ -120,98 +83,56 @@ function duration(sec) {
   return `${m}:${s.toString().padStart(2,"0")}`;
 }
 
-/* ================= MODE ================= */
-
-function setMode(m) {
-  mode = m;
-  document.getElementById("teamSection").classList.toggle("hidden", m !== "team");
-
-  document.getElementById("btnMe").className =
-    m === "me" ? "px-4 py-1 rounded bg-white text-blue-600 font-semibold"
-               : "px-4 py-1 rounded bg-blue-500 text-white";
-
-  document.getElementById("btnTeam").className =
-    m === "team" ? "px-4 py-1 rounded bg-white text-blue-600 font-semibold"
-                 : "px-4 py-1 rounded bg-blue-500 text-white";
-
-  render();
-}
-
 /* ================= RENDER ================= */
+
+function renderMyPerformance() {
+  const container = document.getElementById("metrics");
+  container.innerHTML = "";
+
+  const me = data?.agent?.[CURRENT_AGENT];
+
+  if (!me) {
+    container.innerHTML = `
+      <div class="bg-white rounded-xl shadow p-6 text-center text-gray-500 col-span-full">
+        No activity yet for this shift.
+        <div class="text-xs mt-2">
+          Once you submit calls, your performance will appear here automatically.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML += card("My Submissions", me.submissions);
+  container.innerHTML += card("Qualified", me.qualified);
+  container.innerHTML += card("FPH", fmt(me.fph), "Forms per hour");
+  container.innerHTML += card("SPH", fmt(me.sph), "Sales per hour");
+  container.innerHTML += card(
+    "Avg Talk Time",
+    duration(me.avgTalkTime),
+    "Per submitted call"
+  );
+}
 
 function render() {
   if (!data) return;
 
   document.getElementById("lastSubmission").textContent =
-    data.lastSubmission ? new Date(data.lastSubmission).toLocaleString() : "—";
+    data.lastSubmission
+      ? new Date(data.lastSubmission).toLocaleString()
+      : "—";
 
-  const metrics = document.getElementById("metrics");
-  metrics.innerHTML = "";
-
-  if (mode === "me") {
-    const me = data.agent[CURRENT_AGENT];
-    if (!me) {
-      metrics.innerHTML = `<div class="text-gray-500">No data for ${CURRENT_AGENT}</div>`;
-      return;
-    }
-
-    metrics.innerHTML += card("Submissions", me.submissions);
-    metrics.innerHTML += card("Qualified", me.qualified);
-    metrics.innerHTML += card("FPH", fmt(me.fph));
-    metrics.innerHTML += card("SPH", fmt(me.sph), `Avg Talk: ${duration(me.avgTalkTime)}`);
-  }
-
-  if (mode === "team") {
-    const s = data.summary;
-    metrics.innerHTML += card("Total Subs", s.submissions);
-    metrics.innerHTML += card("Qualified", s.qualified);
-    metrics.innerHTML += card("FPH", fmt(s.fph));
-    metrics.innerHTML += card("SPH", fmt(s.sph));
-
-    renderCampaigns();
-    renderStates();
-  }
-}
-
-function renderCampaigns() {
-  const tbody = document.getElementById("campaignTable");
-  tbody.innerHTML = "";
-
-  Object.entries(data.campaign).forEach(([name, c]) => {
-    tbody.innerHTML += `
-      <tr class="border-b">
-        <td class="py-2">${name}</td>
-        <td class="text-center">${c.submissions}</td>
-        <td class="text-center font-semibold">${c.qualified}</td>
-        <td class="text-center">${fmt(c.fph)}</td>
-      </tr>
-    `;
-  });
-}
-
-function renderStates() {
-  const grid = document.getElementById("statesGrid");
-  grid.innerHTML = "";
-
-  Object.entries(data.states)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,8)
-    .forEach(([state,count]) => {
-      grid.innerHTML += `
-        <div class="bg-blue-50 rounded-lg p-3 text-center">
-          <div class="text-xl font-bold text-blue-600">${count}</div>
-          <div class="text-xs text-gray-600">${state}</div>
-        </div>
-      `;
-    });
+  renderMyPerformance();
 }
 
 /* ================= DATA ================= */
 
-firebase.database().ref(`${"dashboard_v2"}/live`).on("value", snap => {
-  data = snap.val();
-  render();
-});
+firebase.database()
+  .ref(`${FIREBASE_NODE}/live`)
+  .on("value", snapshot => {
+    data = snapshot.val();
+    render();
+  });
 </script>
 
 </body>
