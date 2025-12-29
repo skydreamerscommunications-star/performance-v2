@@ -169,29 +169,37 @@
           '12 AM','1 AM','2 AM','3 AM','4 AM','5 AM'
         ],
         datasets: [
-  {
-    label: 'Not Qualified',
-    data: [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-    backgroundColor: '#fca5a5'
-  },
-  {
-    label: 'Qualified',
-    data: [0, 1, 2, 1, 0, 1, 1, 0, 0, 0, 0],
-    backgroundColor: '#86efac'
-  }
-]
+          {
+            label: 'Not Qualified',
+            data: [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+            backgroundColor: '#fca5a5'
+          },
+          {
+            label: 'Qualified',
+            data: [0, 1, 2, 1, 0, 1, 1, 0, 0, 0, 0],
+            backgroundColor: '#86efac'
+          }
+        ]
       },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
         scales: {
-  x: {
-    stacked: true
-  },
-  y: {
-    stacked: true,
-    beginAtZero: true,
-    ticks: { stepSize: 1 }
-  }
-}
-
+          x: {
+            stacked: true
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
       }
     });
   }
