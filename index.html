@@ -2,211 +2,142 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Realtime Agent Panel</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Sky Dreamers • Agent Performance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
     body {
-      font-family: Inter, Arial, sans-serif;
-      background: #f6f8fb;
-      margin: 0;
-      padding: 24px;
-      color: #1f2937;
-    }
-
-    h2 {
-      margin: 0 0 4px 0;
-      font-size: 18px;
-    }
-
-    p.sub {
-      margin: 0 0 14px 0;
-      color: #6b7280;
-      font-size: 13px;
-    }
-
-    /* ===== Cards ===== */
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 16px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-    }
-
-    .card span {
-      display: block;
-      font-size: 12px;
-      color: #6b7280;
-    }
-
-    .card strong {
-      font-size: 22px;
-    }
-
-    /* ===== Panels ===== */
-    .panel {
-      background: white;
-      padding: 18px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-      margin-bottom: 18px;
-    }
-
-    /* ===== Buttons ===== */
-    .primary-btn {
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .primary-btn:hover {
-      background: #1e40af;
-    }
-
-    /* ===== Hourly Chart Container ===== */
-    .hourly-wrapper {
-      max-height: 220px;
-    }
-
-    /* ===== Submissions ===== */
-    .submissions {
-      display: none;
-      margin-top: 16px;
-      border-top: 1px solid #e5e7eb;
-      padding-top: 14px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-    }
-
-    th {
-      color: #6b7280;
-      font-weight: 500;
+      font-family: Inter, system-ui, sans-serif;
+      background: #f8fafc;
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-  <!-- ===== Realtime Cards ===== -->
-  <div class="cards">
-    <div class="card">
-      <span>Submissions (Today)</span>
-      <strong>14</strong>
+<!-- HEADER -->
+<header class="bg-white border-b px-8 py-6">
+  <div class="max-w-6xl mx-auto space-y-1">
+    <h1 class="text-xl font-semibold text-gray-900">
+      Sky Dreamers — Agent Performance
+    </h1>
+    <p class="text-gray-600">
+      Welcome Agent.  
+      <span class="text-gray-400">Your last submission:</span>
+      <span class="font-medium">—</span>
+    </p>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="max-w-6xl mx-auto px-8 py-8">
+
+  <!-- KPI CARDS -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+
+    <!-- Submissions -->
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-sm text-gray-500">Submissions</div>
+      <div class="text-3xl font-bold text-gray-900 mt-1">0</div>
+      <div class="text-xs text-gray-400 mt-2">Effort</div>
     </div>
-    <div class="card">
-      <span>Qualified (Today)</span>
-      <strong>6</strong>
+
+    <!-- Qualified -->
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-sm text-gray-500">Qualified</div>
+      <div class="text-3xl font-bold text-green-600 mt-1">0</div>
+      <div class="text-xs text-gray-400 mt-2">Output</div>
     </div>
-    <div class="card">
-      <span>Not Qualified (Today)</span>
-      <strong>8</strong>
+
+    <!-- Not Qualified -->
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-sm text-gray-500">Not Qualified</div>
+      <div class="text-3xl font-bold text-red-500 mt-1">0</div>
+      <div class="text-xs text-gray-400 mt-2">Bad output</div>
     </div>
+
+    <!-- Momentum -->
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-sm text-gray-500">Momentum</div>
+      <div class="text-xl font-semibold text-yellow-600 mt-2">
+        Cold
+      </div>
+      <div class="text-xs text-gray-400 mt-2">Consistency</div>
+    </div>
+
+    <!-- Remaining Target -->
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="text-sm text-gray-500">Remaining Target</div>
+      <div class="text-3xl font-bold text-gray-900 mt-1">—</div>
+      <div class="text-xs text-gray-400 mt-2">Goal</div>
+    </div>
+
+  </section>
+
+</main>
+  <!-- MY SUBMISSIONS -->
+<section class="mt-10 space-y-4">
+
+  <div>
+    <h2 class="text-lg font-semibold text-gray-900">My Submissions</h2>
+    <p class="text-sm text-gray-500">Review your recent activity</p>
   </div>
 
-  <!-- ===== Hourly Activity (Realtime Truth) ===== -->
-  <div class="panel">
-    <h2>Hourly Activity (Today)</h2>
-    <p class="sub">Each bar represents submissions during that hour</p>
+  <!-- FILTER BUTTONS -->
+  <div class="flex flex-wrap gap-2">
+    <button class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm">
+      All
+    </button>
+    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
+      By DID
+    </button>
+    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
+      By State
+    </button>
+    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
+      Qualified
+    </button>
+    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
+      Not Qualified
+    </button>
+    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
+      Pending
+    </button>
+  </div>
 
-    <div class="hourly-wrapper">
-      <canvas id="hourlyChart"></canvas>
+  <!-- SUBMISSIONS LIST -->
+  <div class="bg-white rounded-xl shadow divide-y">
+
+    <div class="p-4 flex justify-between text-sm">
+      <div>
+        <div class="font-medium">Submission</div>
+        <div class="text-gray-500">DID: D3 • State: TX</div>
+      </div>
+      <div class="text-gray-400">12 min ago</div>
     </div>
+
+    <div class="p-4 flex justify-between text-sm">
+      <div>
+        <div class="font-medium">Submission</div>
+        <div class="text-gray-500">DID: D1 • State: GA</div>
+      </div>
+      <div class="text-gray-400">38 min ago</div>
+    </div>
+
+    <div class="p-4 flex justify-between text-sm">
+      <div>
+        <div class="font-medium">Submission</div>
+        <div class="text-gray-500">DID: D2 • State: FL</div>
+      </div>
+      <div class="text-gray-400">1h ago</div>
+    </div>
+
   </div>
 
-  <!-- ===== Primary Action ===== -->
-  <button class="primary-btn" onclick="toggleSubmissions()">My Submissions</button>
+</section>
 
-  <!-- ===== Realtime Submissions ===== -->
-  <div class="panel submissions" id="submissionsPanel">
-    <table>
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Campaign</th>
-          <th>DID</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>01:14 AM</td>
-          <td>MVA</td>
-          <td>F9</td>
-          <td>Qualified</td>
-        </tr>
-        <tr>
-          <td>01:02 AM</td>
-          <td>MVA</td>
-          <td>F13</td>
-          <td>Not Qualified</td>
-        </tr>
-        <tr>
-          <td>12:46 AM</td>
-          <td>FE</td>
-          <td>F9</td>
-          <td>Pending</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ===== Scripts ===== -->
-  <script>
-    function toggleSubmissions() {
-      const panel = document.getElementById("submissionsPanel");
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-    }
-
-    const ctx = document.getElementById("hourlyChart").getContext("2d");
-
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: [
-          "7 PM","8 PM","9 PM","10 PM","11 PM",
-          "12 AM","1 AM","2 AM","3 AM","4 AM","5 AM"
-        ],
-        datasets: [{
-          label: "Submissions",
-          data: [1, 2, 3, 2, 1, 2, 2, 1, 0, 0, 0],
-          backgroundColor: "#93c5fd"
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1
-            }
-          }
-        }
-      }
-    });
-  </script>
 
 </body>
 </html>
