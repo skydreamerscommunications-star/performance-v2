@@ -16,147 +16,173 @@ body {
 </style>
 </head>
 
-<body class="min-h-screen">
+<body class="min-h-screen flex">
 
-<!-- HEADER -->
-<header class="bg-white border-b px-8 py-6">
-  <div class="max-w-7xl mx-auto flex justify-between items-center">
-    <div>
-      <h1 class="text-xl font-semibold text-gray-900">
-        Sky Dreamers — Agent Realtime
-      </h1>
-      <p class="text-gray-600 text-sm">
-        Welcome, <strong>Muhammad Hasnain</strong>
-      </p>
+<!-- LEFT SIDEBAR (STRUCTURAL) -->
+<aside class="w-64 bg-slate-900 text-slate-200 flex flex-col px-5 py-6">
+
+  <div class="mb-8">
+    <div class="text-lg font-semibold text-white">
+      Sky Dreamers
     </div>
-    <div class="text-sm text-gray-500">
-      Last Submission: <span class="font-medium">14:20</span>
-    </div>
-  </div>
-</header>
-
-<main class="max-w-7xl mx-auto px-8 py-8">
-
-<div class="flex gap-6">
-
-<!-- SIDE PANEL -->
-<aside class="w-72 space-y-4">
-
-  <div class="bg-white rounded-xl shadow p-4">
-    <h3 class="text-sm font-semibold text-gray-900">My Performance</h3>
-    <p class="text-xs text-gray-500">Personal patterns over time</p>
-    <div class="mt-4 h-24 bg-gray-50 rounded flex items-center justify-center text-xs text-gray-400">
-      (Historical later)
+    <div class="text-xs text-slate-400 mt-1">
+      Realtime Performance
     </div>
   </div>
 
-  <div class="bg-white rounded-xl shadow p-4">
-    <h3 class="text-sm font-semibold text-gray-900">Team Performance</h3>
-    <p class="text-xs text-gray-500">Aggregate view</p>
-    <div class="mt-4 h-24 bg-gray-50 rounded flex items-center justify-center text-xs text-gray-400">
-      (Future panel)
+  <div class="mb-6">
+    <div class="text-sm font-medium text-white">
+      Muhammad Hasnain
     </div>
+    <div class="text-xs text-slate-400">
+      Agent
+    </div>
+  </div>
+
+  <nav class="space-y-1 text-sm">
+    <div class="px-3 py-2 rounded bg-slate-800 text-white">
+      Realtime Overview
+    </div>
+    <div class="px-3 py-2 rounded text-slate-400">
+      My Submissions
+    </div>
+    <div class="px-3 py-2 rounded text-slate-500 cursor-not-allowed">
+      Team Performance
+    </div>
+    <div class="px-3 py-2 rounded text-slate-500 cursor-not-allowed">
+      History
+    </div>
+  </nav>
+
+  <div class="mt-auto text-xs text-slate-500">
+    Truth over pressure
   </div>
 
 </aside>
 
 <!-- MAIN CANVAS -->
-<section class="flex-1 space-y-10">
+<main class="flex-1 px-8 py-6 space-y-8">
 
-<!-- KPI CARDS -->
-<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+  <!-- HEADER -->
+  <header class="flex justify-between items-center">
+    <div>
+      <h1 class="text-xl font-semibold text-gray-900">
+        Agent Realtime
+      </h1>
+      <p class="text-sm text-gray-500">
+        Today only • No interpretation
+      </p>
+    </div>
+    <div class="text-sm text-gray-500">
+      Last Submission: <span class="font-medium">14:20</span>
+    </div>
+  </header>
 
-<div class="bg-white rounded-xl shadow p-5">
-  <div class="text-sm text-gray-500">Submissions</div>
-  <div class="text-3xl font-bold">20</div>
-  <div class="text-xs text-gray-400 mt-1">Effort</div>
-</div>
+  <!-- KPI CARDS (FIXED) -->
+  <section class="grid grid-cols-2 lg:grid-cols-5 gap-4">
 
-<div class="bg-white rounded-xl shadow p-5">
-  <div class="text-sm text-gray-500">Qualified</div>
-  <div class="text-3xl font-bold text-green-600">7</div>
-</div>
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-sm text-gray-500">Submissions</div>
+      <div class="text-3xl font-bold">20</div>
+      <div class="text-xs text-gray-400">Effort</div>
+    </div>
 
-<div class="bg-white rounded-xl shadow p-5">
-  <div class="text-sm text-gray-500">Not Qualified</div>
-  <div class="text-3xl font-bold text-red-500">7</div>
-</div>
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-sm text-gray-500">Qualified</div>
+      <div class="text-3xl font-bold text-green-600">7</div>
+    </div>
 
-<div class="bg-white rounded-xl shadow p-5">
-  <div class="text-sm text-gray-500">Pending</div>
-  <div class="text-3xl font-bold text-yellow-500">6</div>
-</div>
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-sm text-gray-500">Not Qualified</div>
+      <div class="text-3xl font-bold text-red-500">7</div>
+    </div>
 
-<div class="bg-white rounded-xl shadow p-5">
-  <div class="text-sm text-gray-500">Momentum</div>
-  <div class="text-xl font-semibold text-yellow-600 mt-2">Neutral</div>
-</div>
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-sm text-gray-500">Pending</div>
+      <div class="text-3xl font-bold text-yellow-500">6</div>
+    </div>
 
-</section>
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="text-sm text-gray-500">Momentum</div>
+      <div class="text-xl font-semibold text-yellow-600 mt-1">
+        Neutral
+      </div>
+    </div>
 
-<!-- HOURLY ACTIVITY -->
-<section class="bg-white rounded-xl shadow p-6 max-w-4xl">
-<h2 class="font-semibold text-gray-900">Hourly Activity (Today)</h2>
-<p class="text-sm text-gray-500 mb-4">Effort stacked by outcome</p>
-<canvas id="hourlyChart" height="120"></canvas>
-</section>
+  </section>
 
-<!-- MY SUBMISSIONS -->
-<section class="space-y-4">
+  <!-- MODE TOGGLE -->
+  <div class="flex gap-3">
+    <button onclick="showOverview()"
+      class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm">
+      Overview
+    </button>
+    <button onclick="showSubmissions()"
+      class="px-4 py-2 rounded-lg bg-white border text-sm">
+      My Submissions
+    </button>
+  </div>
 
-<button onclick="toggleSubs()"
-class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm">
-My Submissions
-</button>
+  <!-- CONTENT SLOT -->
+  <section>
 
-<div id="subsPanel" class="hidden space-y-4">
+    <!-- OVERVIEW MODE -->
+    <div id="overviewMode" class="bg-white rounded-xl shadow p-6 max-w-4xl">
+      <h2 class="font-semibold text-gray-900">
+        Hourly Activity (Today)
+      </h2>
+      <p class="text-sm text-gray-500 mb-4">
+        Effort stacked by outcome
+      </p>
+      <canvas id="hourlyChart" height="120"></canvas>
+    </div>
 
-<!-- FILTERS -->
-<div class="flex flex-wrap gap-3">
-<select id="campaignFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
-<option value="">All Campaigns</option>
-<option>MVA</option>
-<option>Auto</option>
-<option>Medicare</option>
-</select>
+    <!-- SUBMISSIONS MODE -->
+    <div id="submissionsMode" class="hidden space-y-4">
 
-<select id="didFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
-<option value="">All DIDs</option>
-<option>M22 RTB</option>
-<option>A1 RTB</option>
-<option>D4 REV</option>
-<option>M6 CPL</option>
-</select>
+      <div class="flex gap-3">
+        <select id="campaignFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
+          <option value="">All Campaigns</option>
+          <option>MVA</option>
+          <option>Auto</option>
+          <option>Medicare</option>
+        </select>
 
-<select id="dispoFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
-<option value="">All Outcomes</option>
-<option>Qualified</option>
-<option>Not Qualified</option>
-<option>Pending</option>
-</select>
-</div>
+        <select id="didFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
+          <option value="">All DIDs</option>
+          <option>M22 RTB</option>
+          <option>A1 RTB</option>
+          <option>D4 REV</option>
+          <option>M6 CPL</option>
+        </select>
 
-<!-- TABLE -->
-<div class="bg-white rounded-xl shadow overflow-hidden">
-<table class="w-full text-sm">
-<thead class="bg-gray-50">
-<tr>
-<th class="p-3 text-left">Time</th>
-<th class="p-3 text-left">DID</th>
-<th class="p-3 text-left">Campaign</th>
-<th class="p-3 text-left">State</th>
-<th class="p-3 text-left">Dispo</th>
-</tr>
-</thead>
-<tbody id="subsTable"></tbody>
-</table>
-</div>
+        <select id="dispoFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
+          <option value="">All Outcomes</option>
+          <option>Qualified</option>
+          <option>Not Qualified</option>
+          <option>Pending</option>
+        </select>
+      </div>
 
-</div>
-</section>
+      <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="p-3 text-left">Time</th>
+              <th class="p-3 text-left">DID</th>
+              <th class="p-3 text-left">Campaign</th>
+              <th class="p-3 text-left">State</th>
+              <th class="p-3 text-left">Dispo</th>
+            </tr>
+          </thead>
+          <tbody id="subsTable"></tbody>
+        </table>
+      </div>
 
-</section>
-</div>
+    </div>
+
+  </section>
+
 </main>
 
 <script>
@@ -168,13 +194,17 @@ const submissions = [
 {time:"06:45",did:"M22 RTB",campaign:"MVA",state:"IL",dispo:"Not Qualified"},
 {time:"06:56",did:"A1 RTB",campaign:"Auto",state:"TX",dispo:"Qualified"},
 {time:"07:06",did:"A1 RTB",campaign:"Auto",state:"CA",dispo:"Pending"},
-{time:"07:16",did:"M22 RTB",campaign:"MVA",state:"NC",dispo:"Qualified"},
-{time:"07:26",did:"D4 REV",campaign:"Medicare",state:"AZ",dispo:"Not Qualified"},
-{time:"07:36",did:"A1 RTB",campaign:"Auto",state:"NJ",dispo:"Pending"}
+{time:"07:16",did:"M22 RTB",campaign:"MVA",state:"NC",dispo:"Qualified"}
 ];
 
-function toggleSubs(){
-  document.getElementById("subsPanel").classList.toggle("hidden");
+function showOverview(){
+  document.getElementById("overviewMode").classList.remove("hidden");
+  document.getElementById("submissionsMode").classList.add("hidden");
+}
+
+function showSubmissions(){
+  document.getElementById("overviewMode").classList.add("hidden");
+  document.getElementById("submissionsMode").classList.remove("hidden");
   renderTable();
 }
 
@@ -199,7 +229,7 @@ function renderTable(){
   });
 }
 
-// Chart
+// Hourly chart
 new Chart(document.getElementById("hourlyChart"),{
 type:"bar",
 data:{
