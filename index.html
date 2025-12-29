@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sky Dreamers • Agent Performance</title>
+  <title>Sky Dreamers • Agent Realtime</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
@@ -15,129 +17,176 @@
     }
   </style>
 </head>
+
 <body class="min-h-screen">
 
-<!-- HEADER -->
+<!-- =========================
+     ZONE 1: HEADER (ORIENTATION)
+========================= -->
 <header class="bg-white border-b px-8 py-6">
   <div class="max-w-6xl mx-auto space-y-1">
     <h1 class="text-xl font-semibold text-gray-900">
-      Sky Dreamers — Agent Performance
+      Sky Dreamers — Agent Realtime
     </h1>
     <p class="text-gray-600">
-      Welcome Agent.  
-      <span class="text-gray-400">Your last submission:</span>
+      Welcome Agent.
+      <span class="text-gray-400">Last submission:</span>
       <span class="font-medium">—</span>
     </p>
   </div>
 </header>
 
-<!-- MAIN -->
-<main class="max-w-6xl mx-auto px-8 py-8">
+<!-- =========================
+     MAIN
+========================= -->
+<main class="max-w-6xl mx-auto px-8 py-8 space-y-10">
 
-  <!-- KPI CARDS -->
+  <!-- =========================
+       ZONE 2: SNAPSHOT CARDS (TODAY)
+  ========================= -->
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
 
-    <!-- Submissions -->
     <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Submissions</div>
-      <div class="text-3xl font-bold text-gray-900 mt-1">0</div>
+      <div class="text-sm text-gray-500">Submissions (Today)</div>
+      <div class="text-3xl font-bold text-gray-900 mt-1">14</div>
       <div class="text-xs text-gray-400 mt-2">Effort</div>
     </div>
 
-    <!-- Qualified -->
     <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Qualified</div>
-      <div class="text-3xl font-bold text-green-600 mt-1">0</div>
+      <div class="text-sm text-gray-500">Qualified (Today)</div>
+      <div class="text-3xl font-bold text-green-600 mt-1">6</div>
       <div class="text-xs text-gray-400 mt-2">Output</div>
     </div>
 
-    <!-- Not Qualified -->
     <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Not Qualified</div>
-      <div class="text-3xl font-bold text-red-500 mt-1">0</div>
-      <div class="text-xs text-gray-400 mt-2">Bad output</div>
+      <div class="text-sm text-gray-500">Not Qualified (Today)</div>
+      <div class="text-3xl font-bold text-red-500 mt-1">8</div>
+      <div class="text-xs text-gray-400 mt-2">Non-qualified</div>
     </div>
 
-    <!-- Momentum -->
     <div class="bg-white rounded-xl shadow p-5">
       <div class="text-sm text-gray-500">Momentum</div>
       <div class="text-xl font-semibold text-yellow-600 mt-2">
         Cold
       </div>
-      <div class="text-xs text-gray-400 mt-2">Consistency</div>
+      <div class="text-xs text-gray-400 mt-2">Realtime state</div>
     </div>
 
-    <!-- Remaining Target -->
     <div class="bg-white rounded-xl shadow p-5">
       <div class="text-sm text-gray-500">Remaining Target</div>
       <div class="text-3xl font-bold text-gray-900 mt-1">—</div>
-      <div class="text-xs text-gray-400 mt-2">Goal</div>
+      <div class="text-xs text-gray-400 mt-2">Goal placeholder</div>
+    </div>
+
+  </section>
+
+  <!-- =========================
+       ZONE 3: TIME AWARENESS (REALTIME)
+  ========================= -->
+  <section class="bg-white rounded-xl shadow p-6 max-w-4xl">
+
+    <h2 class="text-lg font-semibold text-gray-900">
+      Hourly Activity (Today)
+    </h2>
+
+    <p class="text-sm text-gray-500 mb-4">
+      Each bar represents submissions during that hour (7 PM – 5 AM)
+    </p>
+
+    <canvas id="hourlyChart" height="120"></canvas>
+
+  </section>
+
+  <!-- =========================
+       ZONE 4: ACTION → DETAIL
+  ========================= -->
+  <section class="space-y-4">
+
+    <!-- Action -->
+    <button
+      onclick="document.getElementById('mySubmissionsPanel').classList.toggle('hidden')"
+      class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm"
+    >
+      My Submissions
+    </button>
+
+    <!-- Detail (Collapsed by default) -->
+    <div id="mySubmissionsPanel" class="hidden space-y-4">
+
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900">My Submissions</h2>
+        <p class="text-sm text-gray-500">
+          Today’s submissions, ordered by time
+        </p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow divide-y">
+
+        <div class="p-4 flex justify-between text-sm">
+          <div>
+            <div class="font-medium">Submission</div>
+            <div class="text-gray-500">DID: D3 • State: TX</div>
+          </div>
+          <div class="text-gray-400">12 min ago</div>
+        </div>
+
+        <div class="p-4 flex justify-between text-sm">
+          <div>
+            <div class="font-medium">Submission</div>
+            <div class="text-gray-500">DID: D1 • State: GA</div>
+          </div>
+          <div class="text-gray-400">38 min ago</div>
+        </div>
+
+        <div class="p-4 flex justify-between text-sm">
+          <div>
+            <div class="font-medium">Submission</div>
+            <div class="text-gray-500">DID: D2 • State: FL</div>
+          </div>
+          <div class="text-gray-400">1h ago</div>
+        </div>
+
+      </div>
+
     </div>
 
   </section>
 
 </main>
-  <!-- MY SUBMISSIONS -->
-<section class="mt-10 space-y-4">
 
-  <div>
-    <h2 class="text-lg font-semibold text-gray-900">My Submissions</h2>
-    <p class="text-sm text-gray-500">Review your recent activity</p>
-  </div>
+<!-- =========================
+     SCRIPTS
+========================= -->
+<script>
+  const ctx = document.getElementById('hourlyChart');
 
-  <!-- FILTER BUTTONS -->
-  <div class="flex flex-wrap gap-2">
-    <button class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm">
-      All
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      By DID
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      By State
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      Qualified
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      Not Qualified
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      Pending
-    </button>
-  </div>
-
-  <!-- SUBMISSIONS LIST -->
-  <div class="bg-white rounded-xl shadow divide-y">
-
-    <div class="p-4 flex justify-between text-sm">
-      <div>
-        <div class="font-medium">Submission</div>
-        <div class="text-gray-500">DID: D3 • State: TX</div>
-      </div>
-      <div class="text-gray-400">12 min ago</div>
-    </div>
-
-    <div class="p-4 flex justify-between text-sm">
-      <div>
-        <div class="font-medium">Submission</div>
-        <div class="text-gray-500">DID: D1 • State: GA</div>
-      </div>
-      <div class="text-gray-400">38 min ago</div>
-    </div>
-
-    <div class="p-4 flex justify-between text-sm">
-      <div>
-        <div class="font-medium">Submission</div>
-        <div class="text-gray-500">DID: D2 • State: FL</div>
-      </div>
-      <div class="text-gray-400">1h ago</div>
-    </div>
-
-  </div>
-
-</section>
-
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [
+          '7 PM','8 PM','9 PM','10 PM','11 PM',
+          '12 AM','1 AM','2 AM','3 AM','4 AM','5 AM'
+        ],
+        datasets: [{
+          data: [1, 2, 3, 2, 1, 2, 2, 1, 0, 0, 0],
+          backgroundColor: '#93c5fd'
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    });
+  }
+</script>
 
 </body>
 </html>
