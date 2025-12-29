@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Agent Performance Panel</title>
+  <title>Realtime Agent Panel</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -14,12 +14,12 @@
     }
 
     h2 {
-      margin: 0 0 6px 0;
+      margin: 0 0 4px 0;
       font-size: 18px;
     }
 
     p.sub {
-      margin: 0 0 16px 0;
+      margin: 0 0 14px 0;
       color: #6b7280;
       font-size: 13px;
     }
@@ -29,7 +29,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .card {
@@ -49,16 +49,16 @@
       font-size: 22px;
     }
 
-    /* ===== Panel ===== */
+    /* ===== Panels ===== */
     .panel {
       background: white;
-      padding: 20px;
+      padding: 18px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
 
-    /* ===== Button ===== */
+    /* ===== Buttons ===== */
     .primary-btn {
       background: #2563eb;
       color: white;
@@ -73,31 +73,17 @@
       background: #1e40af;
     }
 
-    /* ===== Submissions Section ===== */
+    /* ===== Hourly Chart Container ===== */
+    .hourly-wrapper {
+      max-height: 220px;
+    }
+
+    /* ===== Submissions ===== */
     .submissions {
       display: none;
-      margin-top: 20px;
+      margin-top: 16px;
       border-top: 1px solid #e5e7eb;
-      padding-top: 16px;
-    }
-
-    .filters {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    select, .chip {
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 13px;
-      background: white;
-    }
-
-    .chip {
-      cursor: pointer;
+      padding-top: 14px;
     }
 
     table {
@@ -120,52 +106,37 @@
 </head>
 <body>
 
-  <!-- ===== Cards ===== -->
+  <!-- ===== Realtime Cards ===== -->
   <div class="cards">
     <div class="card">
-      <span>Today's Submissions</span>
+      <span>Submissions (Today)</span>
       <strong>14</strong>
     </div>
     <div class="card">
-      <span>Qualified</span>
+      <span>Qualified (Today)</span>
       <strong>6</strong>
     </div>
     <div class="card">
-      <span>Not Qualified</span>
+      <span>Not Qualified (Today)</span>
       <strong>8</strong>
     </div>
   </div>
 
-  <!-- ===== My Performance ===== -->
+  <!-- ===== Hourly Activity (Realtime Truth) ===== -->
   <div class="panel">
-    <h2>My Performance</h2>
-    <p class="sub">Your recent activity trend (last 7 days)</p>
-    <canvas id="performanceChart" height="90"></canvas>
+    <h2>Hourly Activity (Today)</h2>
+    <p class="sub">Each bar represents submissions during that hour</p>
+
+    <div class="hourly-wrapper">
+      <canvas id="hourlyChart"></canvas>
+    </div>
   </div>
 
-  <!-- ===== My Submissions ===== -->
+  <!-- ===== Primary Action ===== -->
   <button class="primary-btn" onclick="toggleSubmissions()">My Submissions</button>
 
+  <!-- ===== Realtime Submissions ===== -->
   <div class="panel submissions" id="submissionsPanel">
-    <div class="filters">
-      <select>
-        <option>All Campaigns</option>
-        <option>MVA</option>
-        <option>FE</option>
-      </select>
-
-      <select>
-        <option>All DIDs</option>
-        <option>F9</option>
-        <option>F13</option>
-      </select>
-
-      <div class="chip">All</div>
-      <div class="chip">Qualified</div>
-      <div class="chip">Not Qualified</div>
-      <div class="chip">Pending</div>
-    </div>
-
     <table>
       <thead>
         <tr>
@@ -183,13 +154,13 @@
           <td>Qualified</td>
         </tr>
         <tr>
-          <td>01:08 AM</td>
+          <td>01:02 AM</td>
           <td>MVA</td>
           <td>F13</td>
           <td>Not Qualified</td>
         </tr>
         <tr>
-          <td>12:57 AM</td>
+          <td>12:46 AM</td>
           <td>FE</td>
           <td>F9</td>
           <td>Pending</td>
@@ -205,43 +176,31 @@
       panel.style.display = panel.style.display === "none" ? "block" : "none";
     }
 
-    const ctx = document.getElementById("performanceChart").getContext("2d");
+    const ctx = document.getElementById("hourlyChart").getContext("2d");
 
     new Chart(ctx, {
       type: "bar",
       data: {
-        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        datasets: [
-          {
-            label: "Not Qualified",
-            data: [7, 9, 5, 10, 8, 4, 6],
-            backgroundColor: "#bfdbfe"
-          },
-          {
-            label: "Qualified",
-            data: [5, 6, 4, 8, 6, 2, 4],
-            backgroundColor: "#2563eb"
-          }
-        ]
+        labels: [
+          "7 PM","8 PM","9 PM","10 PM","11 PM",
+          "12 AM","1 AM","2 AM","3 AM","4 AM","5 AM"
+        ],
+        datasets: [{
+          label: "Submissions",
+          data: [1, 2, 3, 2, 1, 2, 2, 1, 0, 0, 0],
+          backgroundColor: "#93c5fd"
+        }]
       },
       options: {
         responsive: true,
         plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              boxWidth: 12
-            }
-          }
+          legend: { display: false }
         },
         scales: {
-          x: {
-            stacked: true
-          },
           y: {
-            stacked: true,
+            beginAtZero: true,
             ticks: {
-              stepSize: 5
+              stepSize: 1
             }
           }
         }
