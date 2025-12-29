@@ -2,142 +2,252 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sky Dreamers • Agent Performance</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
+  <title>Agent Performance Panel</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: Inter, system-ui, sans-serif;
-      background: #f8fafc;
+      font-family: Inter, Arial, sans-serif;
+      background: #f6f8fb;
+      margin: 0;
+      padding: 24px;
+      color: #1f2937;
+    }
+
+    h2 {
+      margin: 0 0 6px 0;
+      font-size: 18px;
+    }
+
+    p.sub {
+      margin: 0 0 16px 0;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    /* ===== Cards ===== */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: white;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    .card span {
+      display: block;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .card strong {
+      font-size: 22px;
+    }
+
+    /* ===== Panel ===== */
+    .panel {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      margin-bottom: 24px;
+    }
+
+    /* ===== Button ===== */
+    .primary-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .primary-btn:hover {
+      background: #1e40af;
+    }
+
+    /* ===== Submissions Section ===== */
+    .submissions {
+      display: none;
+      margin-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 16px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    select, .chip {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      background: white;
+    }
+
+    .chip {
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    th {
+      color: #6b7280;
+      font-weight: 500;
     }
   </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-<!-- HEADER -->
-<header class="bg-white border-b px-8 py-6">
-  <div class="max-w-6xl mx-auto space-y-1">
-    <h1 class="text-xl font-semibold text-gray-900">
-      Sky Dreamers — Agent Performance
-    </h1>
-    <p class="text-gray-600">
-      Welcome Agent.  
-      <span class="text-gray-400">Your last submission:</span>
-      <span class="font-medium">—</span>
-    </p>
-  </div>
-</header>
-
-<!-- MAIN -->
-<main class="max-w-6xl mx-auto px-8 py-8">
-
-  <!-- KPI CARDS -->
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-
-    <!-- Submissions -->
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Submissions</div>
-      <div class="text-3xl font-bold text-gray-900 mt-1">0</div>
-      <div class="text-xs text-gray-400 mt-2">Effort</div>
+  <!-- ===== Cards ===== -->
+  <div class="cards">
+    <div class="card">
+      <span>Today's Submissions</span>
+      <strong>14</strong>
     </div>
-
-    <!-- Qualified -->
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Qualified</div>
-      <div class="text-3xl font-bold text-green-600 mt-1">0</div>
-      <div class="text-xs text-gray-400 mt-2">Output</div>
+    <div class="card">
+      <span>Qualified</span>
+      <strong>6</strong>
     </div>
-
-    <!-- Not Qualified -->
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Not Qualified</div>
-      <div class="text-3xl font-bold text-red-500 mt-1">0</div>
-      <div class="text-xs text-gray-400 mt-2">Bad output</div>
+    <div class="card">
+      <span>Not Qualified</span>
+      <strong>8</strong>
     </div>
-
-    <!-- Momentum -->
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Momentum</div>
-      <div class="text-xl font-semibold text-yellow-600 mt-2">
-        Cold
-      </div>
-      <div class="text-xs text-gray-400 mt-2">Consistency</div>
-    </div>
-
-    <!-- Remaining Target -->
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Remaining Target</div>
-      <div class="text-3xl font-bold text-gray-900 mt-1">—</div>
-      <div class="text-xs text-gray-400 mt-2">Goal</div>
-    </div>
-
-  </section>
-
-</main>
-  <!-- MY SUBMISSIONS -->
-<section class="mt-10 space-y-4">
-
-  <div>
-    <h2 class="text-lg font-semibold text-gray-900">My Submissions</h2>
-    <p class="text-sm text-gray-500">Review your recent activity</p>
   </div>
 
-  <!-- FILTER BUTTONS -->
-  <div class="flex flex-wrap gap-2">
-    <button class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm">
-      All
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      By DID
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      By State
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      Qualified
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      Not Qualified
-    </button>
-    <button class="px-4 py-2 rounded-lg bg-white border text-sm">
-      Pending
-    </button>
+  <!-- ===== My Performance ===== -->
+  <div class="panel">
+    <h2>My Performance</h2>
+    <p class="sub">Your recent activity trend (last 7 days)</p>
+    <canvas id="performanceChart" height="90"></canvas>
   </div>
 
-  <!-- SUBMISSIONS LIST -->
-  <div class="bg-white rounded-xl shadow divide-y">
+  <!-- ===== My Submissions ===== -->
+  <button class="primary-btn" onclick="toggleSubmissions()">My Submissions</button>
 
-    <div class="p-4 flex justify-between text-sm">
-      <div>
-        <div class="font-medium">Submission</div>
-        <div class="text-gray-500">DID: D3 • State: TX</div>
-      </div>
-      <div class="text-gray-400">12 min ago</div>
+  <div class="panel submissions" id="submissionsPanel">
+    <div class="filters">
+      <select>
+        <option>All Campaigns</option>
+        <option>MVA</option>
+        <option>FE</option>
+      </select>
+
+      <select>
+        <option>All DIDs</option>
+        <option>F9</option>
+        <option>F13</option>
+      </select>
+
+      <div class="chip">All</div>
+      <div class="chip">Qualified</div>
+      <div class="chip">Not Qualified</div>
+      <div class="chip">Pending</div>
     </div>
 
-    <div class="p-4 flex justify-between text-sm">
-      <div>
-        <div class="font-medium">Submission</div>
-        <div class="text-gray-500">DID: D1 • State: GA</div>
-      </div>
-      <div class="text-gray-400">38 min ago</div>
-    </div>
-
-    <div class="p-4 flex justify-between text-sm">
-      <div>
-        <div class="font-medium">Submission</div>
-        <div class="text-gray-500">DID: D2 • State: FL</div>
-      </div>
-      <div class="text-gray-400">1h ago</div>
-    </div>
-
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Campaign</th>
+          <th>DID</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>01:14 AM</td>
+          <td>MVA</td>
+          <td>F9</td>
+          <td>Qualified</td>
+        </tr>
+        <tr>
+          <td>01:08 AM</td>
+          <td>MVA</td>
+          <td>F13</td>
+          <td>Not Qualified</td>
+        </tr>
+        <tr>
+          <td>12:57 AM</td>
+          <td>FE</td>
+          <td>F9</td>
+          <td>Pending</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
-</section>
+  <!-- ===== Scripts ===== -->
+  <script>
+    function toggleSubmissions() {
+      const panel = document.getElementById("submissionsPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
 
+    const ctx = document.getElementById("performanceChart").getContext("2d");
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        datasets: [
+          {
+            label: "Not Qualified",
+            data: [7, 9, 5, 10, 8, 4, 6],
+            backgroundColor: "#bfdbfe"
+          },
+          {
+            label: "Qualified",
+            data: [5, 6, 4, 8, 6, 2, 4],
+            backgroundColor: "#2563eb"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              boxWidth: 12
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true
+          },
+          y: {
+            stacked: true,
+            ticks: {
+              stepSize: 5
+            }
+          }
+        }
+      }
+    });
+  </script>
 
 </body>
 </html>
