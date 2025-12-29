@@ -1,208 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Sky Dreamers • Agent Realtime</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<title>Sky Dreamers — Agent Realtime</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    body {
-      font-family: Inter, system-ui, sans-serif;
-      background: #f8fafc;
-    }
-  </style>
+<style>
+body {
+  font-family: Inter, system-ui, sans-serif;
+  background:#f8fafc;
+}
+</style>
 </head>
 
 <body class="min-h-screen">
 
-<!-- =========================
-     ZONE 1: HEADER (ORIENTATION)
-========================= -->
+<!-- HEADER -->
 <header class="bg-white border-b px-8 py-6">
-  <div class="max-w-6xl mx-auto space-y-1">
-    <h1 class="text-xl font-semibold text-gray-900">
-      Sky Dreamers — Agent Realtime
-    </h1>
-    <p class="text-gray-600">
-      Welcome Agent.
-      <span class="text-gray-400">Last submission:</span>
-      <span class="font-medium">—</span>
-    </p>
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <div>
+      <h1 class="text-xl font-semibold text-gray-900">
+        Sky Dreamers — Agent Realtime
+      </h1>
+      <p class="text-gray-600 text-sm">
+        Welcome, <strong>Muhammad Hasnain</strong>
+      </p>
+    </div>
+    <div class="text-sm text-gray-500">
+      Last Submission: <span class="font-medium">14:20</span>
+    </div>
   </div>
 </header>
 
-<!-- =========================
-     MAIN
-========================= -->
-<main class="max-w-6xl mx-auto px-8 py-8 space-y-10">
+<main class="max-w-7xl mx-auto px-8 py-8">
 
-  <!-- =========================
-       ZONE 2: SNAPSHOT CARDS (TODAY)
-  ========================= -->
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+<div class="flex gap-6">
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Submissions (Today)</div>
-      <div class="text-3xl font-bold text-gray-900 mt-1">14</div>
-      <div class="text-xs text-gray-400 mt-2">Effort</div>
+<!-- SIDE PANEL -->
+<aside class="w-72 space-y-4">
+
+  <div class="bg-white rounded-xl shadow p-4">
+    <h3 class="text-sm font-semibold text-gray-900">My Performance</h3>
+    <p class="text-xs text-gray-500">Personal patterns over time</p>
+    <div class="mt-4 h-24 bg-gray-50 rounded flex items-center justify-center text-xs text-gray-400">
+      (Historical later)
     </div>
+  </div>
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Qualified (Today)</div>
-      <div class="text-3xl font-bold text-green-600 mt-1">6</div>
-      <div class="text-xs text-gray-400 mt-2">Output</div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <h3 class="text-sm font-semibold text-gray-900">Team Performance</h3>
+    <p class="text-xs text-gray-500">Aggregate view</p>
+    <div class="mt-4 h-24 bg-gray-50 rounded flex items-center justify-center text-xs text-gray-400">
+      (Future panel)
     </div>
+  </div>
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Not Qualified (Today)</div>
-      <div class="text-3xl font-bold text-red-500 mt-1">8</div>
-      <div class="text-xs text-gray-400 mt-2">Non-qualified</div>
-    </div>
+</aside>
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Momentum</div>
-      <div class="text-xl font-semibold text-yellow-600 mt-2">
-        Cold
-      </div>
-      <div class="text-xs text-gray-400 mt-2">Realtime state</div>
-    </div>
+<!-- MAIN CANVAS -->
+<section class="flex-1 space-y-10">
 
-    <div class="bg-white rounded-xl shadow p-5">
-      <div class="text-sm text-gray-500">Remaining Target</div>
-      <div class="text-3xl font-bold text-gray-900 mt-1">—</div>
-      <div class="text-xs text-gray-400 mt-2">Goal placeholder</div>
-    </div>
+<!-- KPI CARDS -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
 
-  </section>
+<div class="bg-white rounded-xl shadow p-5">
+  <div class="text-sm text-gray-500">Submissions</div>
+  <div class="text-3xl font-bold">20</div>
+  <div class="text-xs text-gray-400 mt-1">Effort</div>
+</div>
 
-  <!-- =========================
-       ZONE 3: TIME AWARENESS (REALTIME)
-  ========================= -->
-  <section class="bg-white rounded-xl shadow p-6 max-w-4xl">
+<div class="bg-white rounded-xl shadow p-5">
+  <div class="text-sm text-gray-500">Qualified</div>
+  <div class="text-3xl font-bold text-green-600">7</div>
+</div>
 
-    <h2 class="text-lg font-semibold text-gray-900">
-      Hourly Activity (Today)
-    </h2>
+<div class="bg-white rounded-xl shadow p-5">
+  <div class="text-sm text-gray-500">Not Qualified</div>
+  <div class="text-3xl font-bold text-red-500">7</div>
+</div>
 
-    <p class="text-sm text-gray-500 mb-4">
-      Each bar represents submissions during that hour (7 PM – 5 AM)
-    </p>
+<div class="bg-white rounded-xl shadow p-5">
+  <div class="text-sm text-gray-500">Pending</div>
+  <div class="text-3xl font-bold text-yellow-500">6</div>
+</div>
 
-    <canvas id="hourlyChart" height="120"></canvas>
+<div class="bg-white rounded-xl shadow p-5">
+  <div class="text-sm text-gray-500">Momentum</div>
+  <div class="text-xl font-semibold text-yellow-600 mt-2">Neutral</div>
+</div>
 
-  </section>
+</section>
 
-  <!-- =========================
-       ZONE 4: ACTION → DETAIL
-  ========================= -->
-  <section class="space-y-4">
+<!-- HOURLY ACTIVITY -->
+<section class="bg-white rounded-xl shadow p-6 max-w-4xl">
+<h2 class="font-semibold text-gray-900">Hourly Activity (Today)</h2>
+<p class="text-sm text-gray-500 mb-4">Effort stacked by outcome</p>
+<canvas id="hourlyChart" height="120"></canvas>
+</section>
 
-    <!-- Action -->
-    <button
-      onclick="document.getElementById('mySubmissionsPanel').classList.toggle('hidden')"
-      class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm"
-    >
-      My Submissions
-    </button>
+<!-- MY SUBMISSIONS -->
+<section class="space-y-4">
 
-    <!-- Detail (Collapsed by default) -->
-    <div id="mySubmissionsPanel" class="hidden space-y-4">
+<button onclick="toggleSubs()"
+class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm">
+My Submissions
+</button>
 
-      <div>
-        <h2 class="text-lg font-semibold text-gray-900">My Submissions</h2>
-        <p class="text-sm text-gray-500">
-          Today’s submissions, ordered by time
-        </p>
-      </div>
+<div id="subsPanel" class="hidden space-y-4">
 
-      <div class="bg-white rounded-xl shadow divide-y">
+<!-- FILTERS -->
+<div class="flex flex-wrap gap-3">
+<select id="campaignFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
+<option value="">All Campaigns</option>
+<option>MVA</option>
+<option>Auto</option>
+<option>Medicare</option>
+</select>
 
-        <div class="p-4 flex justify-between text-sm">
-          <div>
-            <div class="font-medium">Submission</div>
-            <div class="text-gray-500">DID: D3 • State: TX</div>
-          </div>
-          <div class="text-gray-400">12 min ago</div>
-        </div>
+<select id="didFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
+<option value="">All DIDs</option>
+<option>M22 RTB</option>
+<option>A1 RTB</option>
+<option>D4 REV</option>
+<option>M6 CPL</option>
+</select>
 
-        <div class="p-4 flex justify-between text-sm">
-          <div>
-            <div class="font-medium">Submission</div>
-            <div class="text-gray-500">DID: D1 • State: GA</div>
-          </div>
-          <div class="text-gray-400">38 min ago</div>
-        </div>
+<select id="dispoFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
+<option value="">All Outcomes</option>
+<option>Qualified</option>
+<option>Not Qualified</option>
+<option>Pending</option>
+</select>
+</div>
 
-        <div class="p-4 flex justify-between text-sm">
-          <div>
-            <div class="font-medium">Submission</div>
-            <div class="text-gray-500">DID: D2 • State: FL</div>
-          </div>
-          <div class="text-gray-400">1h ago</div>
-        </div>
+<!-- TABLE -->
+<div class="bg-white rounded-xl shadow overflow-hidden">
+<table class="w-full text-sm">
+<thead class="bg-gray-50">
+<tr>
+<th class="p-3 text-left">Time</th>
+<th class="p-3 text-left">DID</th>
+<th class="p-3 text-left">Campaign</th>
+<th class="p-3 text-left">State</th>
+<th class="p-3 text-left">Dispo</th>
+</tr>
+</thead>
+<tbody id="subsTable"></tbody>
+</table>
+</div>
 
-      </div>
+</div>
+</section>
 
-    </div>
-
-  </section>
-
+</section>
+</div>
 </main>
 
-<!-- =========================
-     SCRIPTS
-========================= -->
 <script>
-  const ctx = document.getElementById('hourlyChart');
+const submissions = [
+{time:"06:05",did:"M22 RTB",campaign:"MVA",state:"TX",dispo:"Qualified"},
+{time:"06:15",did:"D4 REV",campaign:"Medicare",state:"GA",dispo:"Not Qualified"},
+{time:"06:25",did:"M6 CPL",campaign:"MVA",state:"FL",dispo:"Pending"},
+{time:"06:35",did:"A1 RTB",campaign:"Auto",state:"NY",dispo:"Qualified"},
+{time:"06:45",did:"M22 RTB",campaign:"MVA",state:"IL",dispo:"Not Qualified"},
+{time:"06:56",did:"A1 RTB",campaign:"Auto",state:"TX",dispo:"Qualified"},
+{time:"07:06",did:"A1 RTB",campaign:"Auto",state:"CA",dispo:"Pending"},
+{time:"07:16",did:"M22 RTB",campaign:"MVA",state:"NC",dispo:"Qualified"},
+{time:"07:26",did:"D4 REV",campaign:"Medicare",state:"AZ",dispo:"Not Qualified"},
+{time:"07:36",did:"A1 RTB",campaign:"Auto",state:"NJ",dispo:"Pending"}
+];
 
-  if (ctx) {
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [
-          '7 PM','8 PM','9 PM','10 PM','11 PM',
-          '12 AM','1 AM','2 AM','3 AM','4 AM','5 AM'
-        ],
-        datasets: [
-          {
-            label: 'Not Qualified',
-            data: [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-            backgroundColor: '#fca5a5'
-          },
-          {
-            label: 'Qualified',
-            data: [0, 1, 2, 1, 0, 1, 1, 0, 0, 0, 0],
-            backgroundColor: '#86efac'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          x: {
-            stacked: true
-          },
-          y: {
-            stacked: true,
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1
-            }
-          }
-        }
-      }
-    });
-  }
+function toggleSubs(){
+  document.getElementById("subsPanel").classList.toggle("hidden");
+  renderTable();
+}
+
+function renderTable(){
+  const tbody=document.getElementById("subsTable");
+  tbody.innerHTML="";
+  const c=document.getElementById("campaignFilter").value;
+  const d=document.getElementById("didFilter").value;
+  const o=document.getElementById("dispoFilter").value;
+
+  submissions.filter(s=>
+    (!c||s.campaign===c)&&(!d||s.did===d)&&(!o||s.dispo===o)
+  ).forEach(s=>{
+    tbody.innerHTML+=`
+    <tr class="border-t">
+      <td class="p-3">${s.time}</td>
+      <td class="p-3">${s.did}</td>
+      <td class="p-3">${s.campaign}</td>
+      <td class="p-3">${s.state}</td>
+      <td class="p-3">${s.dispo}</td>
+    </tr>`;
+  });
+}
+
+// Chart
+new Chart(document.getElementById("hourlyChart"),{
+type:"bar",
+data:{
+labels:["6","7","8","9","10","11","12","13","14"],
+datasets:[
+{label:"Not Qualified",data:[1,1,1,1,1,1,1,1,0],backgroundColor:"#fca5a5"},
+{label:"Qualified",data:[1,1,1,1,1,1,1,0,1],backgroundColor:"#86efac"}
+]},
+options:{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}
+});
 </script>
 
 </body>
