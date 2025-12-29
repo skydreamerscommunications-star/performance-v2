@@ -168,21 +168,30 @@
           '7 PM','8 PM','9 PM','10 PM','11 PM',
           '12 AM','1 AM','2 AM','3 AM','4 AM','5 AM'
         ],
-        datasets: [{
-          data: [1, 2, 3, 2, 1, 2, 2, 1, 0, 0, 0],
-          backgroundColor: '#93c5fd'
-        }]
+        datasets: [
+  {
+    label: 'Not Qualified',
+    data: [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+    backgroundColor: '#fca5a5'
+  },
+  {
+    label: 'Qualified',
+    data: [0, 1, 2, 1, 0, 1, 1, 0, 0, 0, 0],
+    backgroundColor: '#86efac'
+  }
+]
       },
-      options: {
-        plugins: {
-          legend: { display: false }
-        },
         scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { stepSize: 1 }
-          }
-        }
+  x: {
+    stacked: true
+  },
+  y: {
+    stacked: true,
+    beginAtZero: true,
+    ticks: { stepSize: 1 }
+  }
+}
+
       }
     });
   }
