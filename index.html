@@ -1,246 +1,198 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Sky Dreamers — Agent Realtime</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+import { useEffect, useState } from "react";
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+/* ================= CONFIG ================= */
 
-<style>
-body {
-  font-family: Inter, system-ui, sans-serif;
-  background:#f8fafc;
+const BASE_URL =
+  "https://performance-dashboard-c7017-default-rtdb.firebaseio.com/dashboard";
+
+/* ================= DATA HOOK ================= */
+
+function useRealtimeData() {
+  const [live, setLive] = useState(null);
+  const [raw, setRaw] = useState(null);
+
+  useEffect(() => {
+    async function load() {
+      const liveRes = await fetch(`${BASE_URL}/live.json`);
+      const rawRes = await fetch(`${BASE_URL}/raw.json`);
+      setLive(await liveRes.json());
+      setRaw(await rawRes.json());
+    }
+
+    load();
+    const id = setInterval(load, 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  return { live, raw };
 }
-</style>
-</head>
 
-<body class="min-h-screen flex">
+/* ================= UI COMPONENTS ================= */
 
-<!-- LEFT SIDEBAR (STRUCTURAL) -->
-<aside class="w-64 bg-slate-900 text-slate-200 flex flex-col px-5 py-6">
-
-  <div class="mb-8">
-    <div class="text-lg font-semibold text-white">
-      Sky Dreamers
+function StatCard({ title, value, sub }) {
+  return (
+    <div className="bg-white rounded-xl p-4 shadow-sm">
+      <div className="text-sm text-gray-500">{title}</div>
+      <div className="text-2xl font-semibold mt-1">{value}</div>
+      {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
     </div>
-    <div class="text-xs text-slate-400 mt-1">
-      Realtime Performance
-    </div>
-  </div>
+  );
+}
 
-  <div class="mb-6">
-    <div class="text-sm font-medium text-white">
-      Muhammad Hasnain
-    </div>
-    <div class="text-xs text-slate-400">
-      Agent
-    </div>
-  </div>
+function SubmissionsTable({ rows }) {
+  return (
+    <table className="w-full text-sm">
+      <thead className="text-left text-gray-500 border-b">
+        <tr>
+          <th className="py-2">Time (PKT)</th>
+          <th>Agent</th>
+          <th>DID</th>
+          <th>State</th>
+          <th>Campaign</th>
+          <th>Disposition</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows?.map((r, i) => (
+          <tr key={i} className="border-b last:border-0">
+            <td className="py-2">{r.timestampPKT}</td>
+            <td>{r.agent || "-"}</td>
+            <td>{r.did || "-"}</td>
+            <td>{r.state || "-"}</td>
+            <td>{r.campaign}</td>
+            <td>{r.disposition || "Pending"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
-  <nav class="space-y-1 text-sm">
-    <div class="px-3 py-2 rounded bg-slate-800 text-white">
-      Realtime Overview
-    </div>
-    <div class="px-3 py-2 rounded text-slate-400">
-      My Submissions
-    </div>
-    <div class="px-3 py-2 rounded text-slate-500 cursor-not-allowed">
-      Team Performance
-    </div>
-    <div class="px-3 py-2 rounded text-slate-500 cursor-not-allowed">
-      History
-    </div>
-  </nav>
+function CampaignTable({ data }) {
+  if (!data) return null;
 
-  <div class="mt-auto text-xs text-slate-500">
-    Truth over pressure
-  </div>
+  return (
+    <table className="w-full text-sm">
+      <thead className="text-left text-gray-500 border-b">
+        <tr>
+          <th className="py-2">Campaign</th>
+          <th>Subs</th>
+          <th>Qualified</th>
+          <th>FPH</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(data).map(([name, c]) => (
+          <tr key={name} className="border-b last:border-0">
+            <td className="py-2">{name}</td>
+            <td>{c.submissions}</td>
+            <td>{c.qualified}</td>
+            <td>{c.fph}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
-</aside>
+function SystemHealth({ meta }) {
+  if (!meta) return null;
 
-<!-- MAIN CANVAS -->
-<main class="flex-1 px-8 py-6 space-y-8">
-
-  <!-- HEADER -->
-  <header class="flex justify-between items-center">
-    <div>
-      <h1 class="text-xl font-semibold text-gray-900">
-        Agent Realtime
-      </h1>
-      <p class="text-sm text-gray-500">
-        Today only • No interpretation
-      </p>
-    </div>
-    <div class="text-sm text-gray-500">
-      Last Submission: <span class="font-medium">14:20</span>
-    </div>
-  </header>
-
-  <!-- KPI CARDS (FIXED) -->
-  <section class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-
-    <div class="bg-white rounded-xl shadow p-4">
-      <div class="text-sm text-gray-500">Submissions</div>
-      <div class="text-3xl font-bold">20</div>
-      <div class="text-xs text-gray-400">Effort</div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow p-4">
-      <div class="text-sm text-gray-500">Qualified</div>
-      <div class="text-3xl font-bold text-green-600">7</div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow p-4">
-      <div class="text-sm text-gray-500">Not Qualified</div>
-      <div class="text-3xl font-bold text-red-500">7</div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow p-4">
-      <div class="text-sm text-gray-500">Pending</div>
-      <div class="text-3xl font-bold text-yellow-500">6</div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow p-4">
-      <div class="text-sm text-gray-500">Momentum</div>
-      <div class="text-xl font-semibold text-yellow-600 mt-1">
-        Neutral
+  return (
+    <div className="bg-white rounded-xl p-4 shadow-sm">
+      <div className="font-medium mb-2">System Health</div>
+      <div className="text-sm text-gray-600 space-y-1">
+        <div>Elapsed Hours: {meta.elapsedHours}</div>
+        <div>Total Agents: {meta.totalAgents}</div>
+        <div>Total Submissions: {meta.totalSubmissions}</div>
+        <div>Shift Progress: {Math.round(meta.shiftProgress * 100)}%</div>
       </div>
     </div>
+  );
+}
 
-  </section>
+/* ================= PANELS ================= */
 
-  <!-- MODE TOGGLE -->
-  <div class="flex gap-3">
-    <button onclick="showOverview()"
-      class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm">
-      Overview
-    </button>
-    <button onclick="showSubmissions()"
-      class="px-4 py-2 rounded-lg bg-white border text-sm">
-      My Submissions
-    </button>
-  </div>
+function AgentPanel({ live, raw }) {
+  const s = live?.summary || {};
 
-  <!-- CONTENT SLOT -->
-  <section>
+  return (
+    <>
+      <h2 className="text-lg font-semibold mb-3">Agent Panel</h2>
 
-    <!-- OVERVIEW MODE -->
-    <div id="overviewMode" class="bg-white rounded-xl shadow p-6 max-w-4xl">
-      <h2 class="font-semibold text-gray-900">
-        Hourly Activity (Today)
-      </h2>
-      <p class="text-sm text-gray-500 mb-4">
-        Effort stacked by outcome
-      </p>
-      <canvas id="hourlyChart" height="120"></canvas>
-    </div>
-
-    <!-- SUBMISSIONS MODE -->
-    <div id="submissionsMode" class="hidden space-y-4">
-
-      <div class="flex gap-3">
-        <select id="campaignFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
-          <option value="">All Campaigns</option>
-          <option>MVA</option>
-          <option>Auto</option>
-          <option>Medicare</option>
-        </select>
-
-        <select id="didFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
-          <option value="">All DIDs</option>
-          <option>M22 RTB</option>
-          <option>A1 RTB</option>
-          <option>D4 REV</option>
-          <option>M6 CPL</option>
-        </select>
-
-        <select id="dispoFilter" class="border rounded px-3 py-2 text-sm" onchange="renderTable()">
-          <option value="">All Outcomes</option>
-          <option>Qualified</option>
-          <option>Not Qualified</option>
-          <option>Pending</option>
-        </select>
+      <div className="grid grid-cols-5 gap-4 mb-6">
+        <StatCard title="Submissions" value={s.submissions || 0} sub={`${s.fph || 0} FPH`} />
+        <StatCard title="Qualified" value={s.qualified || 0} sub={`${s.sph || 0} SPH`} />
+        <StatCard title="Not Qualified" value={s.notQualified || 0} />
+        <StatCard title="Pending" value={s.pending || 0} />
+        <StatCard title="Callback" value={s.callback || 0} />
       </div>
 
-      <div class="bg-white rounded-xl shadow overflow-hidden">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="p-3 text-left">Time</th>
-              <th class="p-3 text-left">DID</th>
-              <th class="p-3 text-left">Campaign</th>
-              <th class="p-3 text-left">State</th>
-              <th class="p-3 text-left">Dispo</th>
-            </tr>
-          </thead>
-          <tbody id="subsTable"></tbody>
-        </table>
+      <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="font-medium mb-2">Live Submissions</div>
+        <SubmissionsTable rows={raw?.submissions} />
       </div>
+    </>
+  );
+}
 
+/* Team Panel = SAME AS AGENT (INTENTIONAL V1) */
+function TeamPanel(props) {
+  return (
+    <>
+      <h2 className="text-lg font-semibold mb-3">Team Performance</h2>
+      <AgentPanel {...props} />
+    </>
+  );
+}
+
+function TeamLeadPanel({ live }) {
+  return (
+    <>
+      <h2 className="text-lg font-semibold mb-3">Team Lead View</h2>
+      <div className="bg-white rounded-xl p-4 shadow-sm">
+        <CampaignTable data={live?.campaign} />
+      </div>
+    </>
+  );
+}
+
+function QualityPanel({ raw }) {
+  return (
+    <>
+      <h2 className="text-lg font-semibold mb-3">Quality Control</h2>
+      <div className="bg-white rounded-xl p-4 shadow-sm">
+        <SubmissionsTable rows={raw?.submissions} />
+      </div>
+    </>
+  );
+}
+
+function AdminPanel({ live }) {
+  return (
+    <>
+      <h2 className="text-lg font-semibold mb-3">Admin Panel</h2>
+      <SystemHealth meta={live?.meta} />
+    </>
+  );
+}
+
+/* ================= ROOT ================= */
+
+export default function App() {
+  const { live, raw } = useRealtimeData();
+
+  if (!live) {
+    return <div className="p-6">Loading realtime dashboard…</div>;
+  }
+
+  return (
+    <div className="p-6 bg-gray-100 min-h-screen space-y-12">
+      <AgentPanel live={live} raw={raw} />
+      <TeamPanel live={live} raw={raw} />
+      <TeamLeadPanel live={live} />
+      <QualityPanel raw={raw} />
+      <AdminPanel live={live} />
     </div>
-
-  </section>
-
-</main>
-
-<script>
-const submissions = [
-{time:"06:05",did:"M22 RTB",campaign:"MVA",state:"TX",dispo:"Qualified"},
-{time:"06:15",did:"D4 REV",campaign:"Medicare",state:"GA",dispo:"Not Qualified"},
-{time:"06:25",did:"M6 CPL",campaign:"MVA",state:"FL",dispo:"Pending"},
-{time:"06:35",did:"A1 RTB",campaign:"Auto",state:"NY",dispo:"Qualified"},
-{time:"06:45",did:"M22 RTB",campaign:"MVA",state:"IL",dispo:"Not Qualified"},
-{time:"06:56",did:"A1 RTB",campaign:"Auto",state:"TX",dispo:"Qualified"},
-{time:"07:06",did:"A1 RTB",campaign:"Auto",state:"CA",dispo:"Pending"},
-{time:"07:16",did:"M22 RTB",campaign:"MVA",state:"NC",dispo:"Qualified"}
-];
-
-function showOverview(){
-  document.getElementById("overviewMode").classList.remove("hidden");
-  document.getElementById("submissionsMode").classList.add("hidden");
+  );
 }
-
-function showSubmissions(){
-  document.getElementById("overviewMode").classList.add("hidden");
-  document.getElementById("submissionsMode").classList.remove("hidden");
-  renderTable();
-}
-
-function renderTable(){
-  const tbody=document.getElementById("subsTable");
-  tbody.innerHTML="";
-  const c=document.getElementById("campaignFilter").value;
-  const d=document.getElementById("didFilter").value;
-  const o=document.getElementById("dispoFilter").value;
-
-  submissions.filter(s=>
-    (!c||s.campaign===c)&&(!d||s.did===d)&&(!o||s.dispo===o)
-  ).forEach(s=>{
-    tbody.innerHTML+=`
-    <tr class="border-t">
-      <td class="p-3">${s.time}</td>
-      <td class="p-3">${s.did}</td>
-      <td class="p-3">${s.campaign}</td>
-      <td class="p-3">${s.state}</td>
-      <td class="p-3">${s.dispo}</td>
-    </tr>`;
-  });
-}
-
-// Hourly chart
-new Chart(document.getElementById("hourlyChart"),{
-type:"bar",
-data:{
-labels:["6","7","8","9","10","11","12","13","14"],
-datasets:[
-{label:"Not Qualified",data:[1,1,1,1,1,1,1,1,0],backgroundColor:"#fca5a5"},
-{label:"Qualified",data:[1,1,1,1,1,1,1,0,1],backgroundColor:"#86efac"}
-]},
-options:{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}
-});
-</script>
-
-</body>
-</html>
