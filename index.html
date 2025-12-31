@@ -3,71 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Performance Dashboard</title>
+    <title>Performance Dashboard - Human-Safe System</title>
     <style>
-        /* BASIC RESET */
+        /* ===== BASE RESET ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* FIXED SIDEBAR - NO HOVER EXPAND */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        /* ===== FIXED SIDEBAR ===== */
         .sidebar {
             position: fixed;
             left: 0;
             top: 0;
             width: 220px;
             height: 100vh;
-            background: #f5f5f5;
-            border-right: 1px solid #ddd;
+            background: #1a365d;
+            color: white;
             overflow-y: auto;
+            padding-top: 20px;
         }
         
-        .sidebar nav ul {
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #2d4a7c;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .sidebar-nav {
             list-style: none;
-            padding: 20px 0;
         }
         
-        .sidebar nav li {
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
+        .sidebar-nav li {
+            padding: 14px 20px;
             cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-nav li:hover {
+            background: #2d4a7c;
+        }
+        
+        .sidebar-nav li.active {
+            background: #2d4a7c;
+            border-left: 3px solid #4299e1;
             font-weight: 500;
         }
         
-        .sidebar nav li.active {
-            background: #007bff;
-            color: white;
+        .sidebar-nav li.team-lead-only {
+            border-top: 1px solid #2d4a7c;
+            margin-top: 10px;
+            padding-top: 20px;
+            color: #a0aec0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        /* MAIN CONTENT */
+        /* ===== MAIN CONTENT ===== */
         .main-content {
             margin-left: 220px;
             padding: 30px;
+            min-height: 100vh;
         }
         
-        /* PANELS */
+        /* ===== PANELS ===== */
         .panel {
             display: none;
+            animation: fadeIn 0.3s ease;
         }
         
         .panel.active {
             display: block;
         }
         
-        /* WELCOME SECTION */
-        .welcome-section {
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* ===== HEADERS ===== */
+        .panel-header {
             margin-bottom: 30px;
         }
         
-        .welcome-section h1 {
+        .panel-header h1 {
             font-size: 28px;
-            color: #333;
+            color: #2d3748;
+            margin-bottom: 8px;
         }
         
-        .welcome-section p {
-            color: #666;
+        .panel-header p {
+            color: #718096;
             font-size: 16px;
         }
         
-        /* KPI CARDS */
+        /* ===== KPI CARDS ===== */
         .kpi-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -76,33 +116,34 @@
         }
         
         .kpi-card {
-            border: 1px solid #ddd;
-            padding: 20px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
         }
         
         .kpi-card h3 {
             font-size: 14px;
-            color: #666;
-            margin-bottom: 10px;
+            color: #718096;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
         }
         
         .kpi-value {
             font-size: 32px;
-            font-weight: bold;
-            color: #333;
+            font-weight: 700;
+            color: #2d3748;
             margin-bottom: 5px;
         }
         
         .kpi-metric {
-            font-size: 12px;
-            color: #28a745;
+            font-size: 14px;
+            color: #48bb78;
         }
         
-        /* CAMPAIGN BUTTONS */
+        /* ===== CAMPAIGN BUTTONS ===== */
         .campaign-buttons {
             display: flex;
             gap: 10px;
@@ -112,79 +153,326 @@
         
         .campaign-btn {
             padding: 8px 20px;
-            border: 2px solid #007bff;
             background: white;
-            color: #007bff;
+            border: 2px solid #e2e8f0;
             border-radius: 20px;
+            color: #4a5568;
             cursor: pointer;
             font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .campaign-btn:hover {
+            border-color: #4299e1;
+            color: #4299e1;
         }
         
         .campaign-btn.active {
-            background: #007bff;
+            background: #4299e1;
+            border-color: #4299e1;
             color: white;
         }
         
-        /* VIEW TOGGLES */
+        /* ===== VIEW TOGGLES ===== */
         .view-toggles {
             display: flex;
             gap: 10px;
             margin: 25px 0;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            width: fit-content;
         }
         
         .view-toggle {
-            padding: 10px 24px;
-            border: 2px solid #007bff;
-            background: white;
-            color: #007bff;
+            padding: 8px 20px;
+            background: transparent;
+            border: none;
             border-radius: 6px;
+            color: #4a5568;
             cursor: pointer;
             font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .view-toggle:hover {
+            background: #edf2f7;
         }
         
         .view-toggle.active {
-            background: #007bff;
+            background: #4299e1;
             color: white;
         }
         
-        /* VIEW CONTENT */
-        .view-content {
-            display: none;
-            margin-top: 20px;
+        /* ===== CHART CONTAINERS ===== */
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
         }
         
-        .view-content.active {
-            display: block;
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
         
-        /* TABLES */
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .chart-header h3 {
+            font-size: 18px;
+            color: #2d3748;
+        }
+        
+        .chart-variations {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chart-variation-btn {
+            padding: 6px 12px;
+            background: #edf2f7;
+            border: none;
+            border-radius: 4px;
+            color: #4a5568;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .chart-variation-btn.active {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .chart-placeholder {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0aec0;
+            font-style: italic;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
             margin-top: 10px;
         }
         
+        /* ===== TOP 3 RECOGNITION PANEL ===== */
+        .recognition-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .recognition-header {
+            margin-bottom: 20px;
+        }
+        
+        .recognition-header h3 {
+            font-size: 18px;
+            color: #2d3748;
+        }
+        
+        .recognition-header p {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .recognition-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .recognition-card {
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .recognition-card .agent-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        .recognition-metrics {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        
+        .metric-item {
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+        
+        /* ===== TEAM LEAD PANEL SPECIFIC ===== */
+        .flow-state-indicator {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .flow-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 15px;
+        }
+        
+        .flow-status.stable {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .flow-status.uneven {
+            background: #feebc8;
+            color: #744210;
+        }
+        
+        .flow-status.drifting {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .flow-description {
+            display: inline;
+            color: #4a5568;
+        }
+        
+        .variance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .variance-column {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .variance-column h3 {
+            font-size: 16px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .signal-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f7fafc;
+        }
+        
+        .signal-item:last-child {
+            border-bottom: none;
+        }
+        
+        .support-grid {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .grid-4x4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .grid-header {
+            font-weight: 600;
+            color: #4a5568;
+            padding: 10px;
+            text-align: center;
+            background: #f7fafc;
+            border-radius: 6px;
+        }
+        
+        .grid-cell {
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            min-height: 100px;
+        }
+        
+        .grid-cell.q1 {
+            background: #fff5f5;
+            border-color: #fed7d7;
+        }
+        
+        .grid-cell.q2 {
+            background: #fffaf0;
+            border-color: #feebc8;
+        }
+        
+        .grid-cell.q3 {
+            background: #f0fff4;
+            border-color: #c6f6d5;
+        }
+        
+        .grid-cell.q4 {
+            background: #f7fafc;
+            border-color: #e2e8f0;
+        }
+        
+        /* ===== TABLES ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        
         th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            padding: 14px 16px;
             text-align: left;
+            border-bottom: 1px solid #e2e8f0;
         }
         
         th {
-            background: #f8f9fa;
+            background: #f7fafc;
             font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
         }
         
-        /* CHART CONTAINER */
-        .chart-container {
-            height: 350px;
-            border: 1px solid #ddd;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
+        tr:hover {
+            background: #f7fafc;
         }
         
-        /* FILTERS */
+        /* ===== FILTERS ===== */
         .filters {
             display: flex;
             gap: 10px;
@@ -193,81 +481,70 @@
         }
         
         select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+            color: #4a5568;
         }
         
         .apply-btn, .reset-btn {
             padding: 8px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
         }
         
         .apply-btn {
-            background: #007bff;
+            background: #4299e1;
             color: white;
         }
         
         .reset-btn {
-            background: #6c757d;
+            background: #a0aec0;
             color: white;
         }
         
-        /* HEADER STYLES */
-        .team-header {
-            margin-bottom: 30px;
+        /* ===== VIEW CONTENT ===== */
+        .view-content {
+            display: none;
         }
         
-        .team-header h1 {
-            font-size: 32px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .team-header p {
-            color: #666;
-            font-size: 18px;
-        }
-        
-        /* HIDDEN */
-        .hidden {
-            display: none !important;
+        .view-content.active {
+            display: block;
         }
     </style>
 </head>
 <body>
     <!-- FIXED SIDEBAR -->
     <aside class="sidebar">
-        <div class="logo" style="padding: 20px; text-align: center; border-bottom: 1px solid #ddd;">
-            <h2 style="color: #007bff;">Dashboard</h2>
+        <div class="sidebar-header">
+            <h2>Performance Dashboard</h2>
         </div>
-        <nav>
-            <ul>
-                <li class="active" data-panel="my-performance">My Performance</li>
-                <li data-panel="team-performance">Team Performance</li>
-            </ul>
-        </nav>
+        <ul class="sidebar-nav">
+            <li class="active" data-panel="agent-performance">My Performance</li>
+            <li data-panel="team-performance">Team Performance</li>
+            <li class="team-lead-only">Team Lead Access</li>
+            <li data-panel="team-lead">Team Flow & Support</li>
+        </ul>
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
-        <!-- MY PERFORMANCE PANEL (AGENT) -->
-        <section id="my-performance" class="panel active">
-            <!-- Welcome Section -->
-            <div class="welcome-section">
+        <!-- AGENT PERFORMANCE PANEL -->
+        <section id="agent-performance" class="panel active">
+            <div class="panel-header">
                 <h1>Welcome Agent</h1>
-                <p>Monitor your performance metrics and submissions</p>
+                <p>Monitor your activity flow and submissions</p>
             </div>
             
-            <!-- KPI Cards - 4 Cards Only -->
+            <!-- KPI Cards -->
             <div class="kpi-container">
                 <div class="kpi-card">
                     <h3>Submissions</h3>
                     <div class="kpi-value">19</div>
-                    <div class="kpi-metric">1.06 FPH</div>
+                    <div class="kpi-metric">Current Shift</div>
                 </div>
                 
                 <div class="kpi-card">
@@ -279,13 +556,13 @@
                 <div class="kpi-card">
                     <h3>Not Qualified</h3>
                     <div class="kpi-value">6</div>
-                    <!-- Quality Control text removed -->
+                    <div class="kpi-metric">Quality Review</div>
                 </div>
                 
                 <div class="kpi-card">
                     <h3>Momentum</h3>
                     <div class="kpi-value">+12%</div>
-                    <div class="kpi-metric">vs last hour</div>
+                    <div class="kpi-metric">vs previous hour</div>
                 </div>
             </div>
             
@@ -296,18 +573,26 @@
             </div>
             
             <!-- Hourly Performance View -->
-            <div id="my-hourly-view" class="view-content active">
-                <h3>Hourly Performance</h3>
+            <div id="agent-hourly-view" class="view-content active">
+                <!-- Submission Flow State Chart -->
                 <div class="chart-container">
-                    <!-- Chart placeholder -->
-                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #666;">
-                        Hourly submissions chart would appear here
+                    <div class="chart-header">
+                        <h3>Submission Flow State</h3>
+                        <div class="chart-variations">
+                            <button class="chart-variation-btn active">Hourly</button>
+                            <button class="chart-variation-btn">Distribution</button>
+                            <button class="chart-variation-btn">Momentum</button>
+                        </div>
+                    </div>
+                    <div class="chart-placeholder">
+                        Stacked Bar Chart: Hourly submissions by QC disposition<br>
+                        Green=Qualified, Red=Not Qualified, Blue=Pending, Yellow=Call Back
                     </div>
                 </div>
             </div>
             
             <!-- My Submissions View -->
-            <div id="my-submissions-view" class="view-content">
+            <div id="agent-submissions-view" class="view-content">
                 <h3>My Submissions</h3>
                 
                 <!-- Filters -->
@@ -378,10 +663,9 @@
 
         <!-- TEAM PERFORMANCE PANEL -->
         <section id="team-performance" class="panel">
-            <!-- Team Header -->
-            <div class="team-header">
+            <div class="panel-header">
                 <h1>Teamwork makes the Dreamwork</h1>
-                <p>Monitor team performance and campaign metrics</p>
+                <p>Monitor team flow and collective activity</p>
             </div>
             
             <!-- Campaign Buttons -->
@@ -393,12 +677,12 @@
                 <button class="campaign-btn" data-campaign="live-traffic">Live Traffic</button>
             </div>
             
-            <!-- Team KPI Cards - 4 Cards Only -->
+            <!-- Team KPI Cards -->
             <div class="kpi-container">
                 <div class="kpi-card">
                     <h3>Submissions</h3>
                     <div class="kpi-value">85</div>
-                    <div class="kpi-metric">4.72 FPH</div>
+                    <div class="kpi-metric">Current Shift</div>
                 </div>
                 
                 <div class="kpi-card">
@@ -410,13 +694,13 @@
                 <div class="kpi-card">
                     <h3>Not Qualified</h3>
                     <div class="kpi-value">28</div>
-                    <!-- Quality Control text removed -->
+                    <div class="kpi-metric">Quality Review</div>
                 </div>
                 
                 <div class="kpi-card">
                     <h3>Momentum</h3>
                     <div class="kpi-value">+8%</div>
-                    <div class="kpi-metric">vs last hour</div>
+                    <div class="kpi-metric">vs previous hour</div>
                 </div>
             </div>
             
@@ -427,13 +711,70 @@
                 <button class="view-toggle" data-view="did">DID Performance</button>
             </div>
             
-            <!-- Team Hourly Performance View -->
+            <!-- Team Hourly View -->
             <div id="team-hourly-view" class="view-content active">
-                <h3>Team Hourly Performance</h3>
+                <!-- Team Flow State Chart -->
                 <div class="chart-container">
-                    <!-- Chart placeholder -->
-                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #666;">
-                        Team hourly performance chart would appear here
+                    <div class="chart-header">
+                        <h3>Team Flow State</h3>
+                        <div class="chart-variations">
+                            <button class="chart-variation-btn active">Hourly</button>
+                            <button class="chart-variation-btn">Distribution</button>
+                            <button class="chart-variation-btn">Campaign View</button>
+                        </div>
+                    </div>
+                    <div class="chart-placeholder">
+                        Team Stacked Bar Chart: Hourly submissions by QC disposition<br>
+                        Shows team collective flow pattern
+                    </div>
+                </div>
+                
+                <!-- Top 3 Recognition Panel -->
+                <div class="recognition-panel">
+                    <div class="recognition-header">
+                        <h3>Current Activity Highlights</h3>
+                        <p>Based on current shift activity • Shows both effort and outcomes</p>
+                    </div>
+                    <div class="recognition-grid">
+                        <div class="recognition-card">
+                            <div class="agent-name">Alex Martin</div>
+                            <div class="recognition-metrics">
+                                <div class="metric-item">
+                                    <div class="metric-value">8</div>
+                                    <div class="metric-label">Qualified</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value">22</div>
+                                    <div class="metric-label">Submissions</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="recognition-card">
+                            <div class="agent-name">Jamie Chen</div>
+                            <div class="recognition-metrics">
+                                <div class="metric-item">
+                                    <div class="metric-value">7</div>
+                                    <div class="metric-label">Qualified</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value">19</div>
+                                    <div class="metric-label">Submissions</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="recognition-card">
+                            <div class="agent-name">Taylor Rodriguez</div>
+                            <div class="recognition-metrics">
+                                <div class="metric-item">
+                                    <div class="metric-value">6</div>
+                                    <div class="metric-label">Qualified</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value">25</div>
+                                    <div class="metric-label">Submissions</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -524,13 +865,98 @@
                 </table>
             </div>
         </section>
+
+        <!-- TEAM LEAD PANEL -->
+        <section id="team-lead" class="panel">
+            <div class="panel-header">
+                <h1>Team Flow & Attention Map</h1>
+                <p>Where is support needed right now?</p>
+            </div>
+            
+            <!-- Flow State Indicator -->
+            <div class="flow-state-indicator">
+                <span class="flow-status uneven">Uneven Flow</span>
+                <span class="flow-description">Activity clustered in 2-hour window • Multiple friction points detected</span>
+            </div>
+            
+            <!-- Variance Detection -->
+            <div class="variance-grid">
+                <div class="variance-column">
+                    <h3>Person-Side Friction Signals</h3>
+                    <div class="signal-item">Alex: 40 minutes since last submission</div>
+                    <div class="signal-item">Jamie: 100% Not Qualified last hour</div>
+                    <div class="signal-item">Taylor: Consistently 2+ minute wait between calls</div>
+                    <div class="signal-item">Morgan: 3 callbacks pending follow-up</div>
+                </div>
+                <div class="variance-column">
+                    <h3>System-Side Friction Signals</h3>
+                    <div class="signal-item">Auto campaign: 15% lower answer rate</div>
+                    <div class="signal-item">Medicare: Average wait time +30 seconds</div>
+                    <div class="signal-item">DID A1-RTB: 3 failed transfers</div>
+                    <div class="signal-item">System latency: Occasional 5+ second delays</div>
+                </div>
+            </div>
+            
+            <!-- Support Allocation Grid -->
+            <div class="support-grid">
+                <h3>Support Allocation Map</h3>
+                <p style="color: #718096; margin-top: 5px;">Where to focus attention right now</p>
+                
+                <div class="grid-4x4">
+                    <div class="grid-header"></div>
+                    <div class="grid-header">Low Variance</div>
+                    <div class="grid-header">High Variance</div>
+                    
+                    <div class="grid-header">Person-Side</div>
+                    <div class="grid-cell q4">
+                        <strong>Q4: Stable patterns</strong><br>
+                        <small style="color: #718096;">Monitor, no action needed</small>
+                    </div>
+                    <div class="grid-cell q2">
+                        <strong>Q2: Needs conversation</strong><br>
+                        <small style="color: #744210;">Jamie: Quality check-in</small><br>
+                        <small style="color: #744210;">Alex: Activity check</small>
+                    </div>
+                    
+                    <div class="grid-header">System-Side</div>
+                    <div class="grid-cell q3">
+                        <strong>Q3: Monitoring</strong><br>
+                        <small style="color: #718096;">System latency observation</small>
+                    </div>
+                    <div class="grid-cell q1">
+                        <strong>Q1: Immediate attention</strong><br>
+                        <small style="color: #742a2a;">Auto campaign answer rate</small><br>
+                        <small style="color: #742a2a;">DID A1-RTB transfers</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Optional Diagnostic View -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3>Variance Detection (Optional View)</h3>
+                    <div class="chart-variations">
+                        <button class="chart-variation-btn active">Now</button>
+                        <button class="chart-variation-btn">This Hour</button>
+                        <button class="chart-variation-btn">Today</button>
+                    </div>
+                </div>
+                <div class="chart-placeholder">
+                    Diagnostic Rankings for Variance Detection Only<br>
+                    Shows: Highest Qualified • Highest Activity • Highest Consistency<br>
+                    <small style="color: #a0aec0; display: block; margin-top: 10px;">
+                        Note: For team lead diagnostic use only. Not shared with team.
+                    </small>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script>
-        // PANEL SWITCHING
+        // ===== PANEL SWITCHING =====
         document.addEventListener('DOMContentLoaded', function() {
             // Sidebar navigation
-            const sidebarItems = document.querySelectorAll('.sidebar li[data-panel]');
+            const sidebarItems = document.querySelectorAll('.sidebar-nav li[data-panel]');
             
             sidebarItems.forEach(item => {
                 item.addEventListener('click', function() {
@@ -553,24 +979,24 @@
                 });
             });
             
-            // My Performance View Toggles
-            document.querySelectorAll('#my-performance .view-toggle').forEach(button => {
+            // ===== AGENT PANEL VIEW TOGGLES =====
+            document.querySelectorAll('#agent-performance .view-toggle').forEach(button => {
                 button.addEventListener('click', function() {
                     const view = this.getAttribute('data-view');
                     
                     // Update active button
-                    document.querySelectorAll('#my-performance .view-toggle').forEach(btn => {
+                    document.querySelectorAll('#agent-performance .view-toggle').forEach(btn => {
                         btn.classList.remove('active');
                     });
                     this.classList.add('active');
                     
                     // Show/hide views
-                    document.getElementById('my-hourly-view').classList.toggle('active', view === 'hourly');
-                    document.getElementById('my-submissions-view').classList.toggle('active', view === 'submissions');
+                    document.getElementById('agent-hourly-view').classList.toggle('active', view === 'hourly');
+                    document.getElementById('agent-submissions-view').classList.toggle('active', view === 'submissions');
                 });
             });
             
-            // Team Performance View Toggles
+            // ===== TEAM PANEL VIEW TOGGLES =====
             document.querySelectorAll('#team-performance .view-toggle').forEach(button => {
                 button.addEventListener('click', function() {
                     const view = this.getAttribute('data-view');
@@ -588,7 +1014,7 @@
                 });
             });
             
-            // Campaign Buttons (existing logic preserved)
+            // ===== CAMPAIGN BUTTONS =====
             const campaignButtons = document.querySelectorAll('.campaign-btn');
             campaignButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -598,19 +1024,32 @@
                     campaignButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // IMPORTANT: This should only update KPI cards
-                    // Preserving existing behavior - no table or chart filtering
-                    console.log('Campaign button clicked:', campaign, '- Only KPI cards should update');
+                    // Only update KPI cards (existing behavior preserved)
+                    updateKPICardsForCampaign(campaign);
                     
-                    // Live Traffic special behavior (existing functionality)
+                    // Live Traffic special behavior
                     if (campaign === 'live-traffic') {
-                        console.log('Live Traffic button clicked - State panel should open');
-                        // Existing Live Traffic logic would go here
+                        console.log('Live Traffic: Opening state panel (existing functionality)');
                     }
                 });
             });
             
-            // Existing filter logic (preserved)
+            // ===== CHART VARIATION BUTTONS =====
+            document.querySelectorAll('.chart-variation-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active state in this group
+                    const parent = this.closest('.chart-variations');
+                    parent.querySelectorAll('.chart-variation-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // In a real implementation, this would switch chart data
+                    console.log('Chart view switched to:', this.textContent);
+                });
+            });
+            
+            // ===== EXISTING FILTER LOGIC (PRESERVED) =====
             document.querySelectorAll('.apply-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     console.log('Apply filter clicked - existing logic preserved');
@@ -622,30 +1061,79 @@
                     console.log('Reset filter clicked - existing logic preserved');
                 });
             });
+            
+            // Initialize with default views
+            resetViewToggles('agent-performance');
         });
         
+        // ===== HELPER FUNCTIONS =====
         function resetViewToggles(panelId) {
-            if (panelId === 'my-performance') {
+            if (panelId === 'agent-performance') {
                 // Reset to Hourly Performance view
-                document.querySelectorAll('#my-performance .view-toggle').forEach(btn => {
+                document.querySelectorAll('#agent-performance .view-toggle').forEach(btn => {
                     btn.classList.remove('active');
                 });
-                document.querySelector('#my-performance .view-toggle[data-view="hourly"]').classList.add('active');
+                const hourlyBtn = document.querySelector('#agent-performance .view-toggle[data-view="hourly"]');
+                if (hourlyBtn) hourlyBtn.classList.add('active');
                 
-                document.getElementById('my-hourly-view').classList.add('active');
-                document.getElementById('my-submissions-view').classList.remove('active');
+                document.getElementById('agent-hourly-view').classList.add('active');
+                document.getElementById('agent-submissions-view').classList.remove('active');
             } else if (panelId === 'team-performance') {
                 // Reset to Team Hourly view
                 document.querySelectorAll('#team-performance .view-toggle').forEach(btn => {
                     btn.classList.remove('active');
                 });
-                document.querySelector('#team-performance .view-toggle[data-view="hourly"]').classList.add('active');
+                const hourlyBtn = document.querySelector('#team-performance .view-toggle[data-view="hourly"]');
+                if (hourlyBtn) hourlyBtn.classList.add('active');
                 
                 document.getElementById('team-hourly-view').classList.add('active');
                 document.getElementById('team-live-view').classList.remove('active');
                 document.getElementById('team-did-view').classList.remove('active');
             }
         }
+        
+        function updateKPICardsForCampaign(campaign) {
+            // This simulates the existing campaign button behavior
+            // Only updates KPI cards, not tables or charts
+            
+            console.log('Campaign selected:', campaign, '- Updating KPI cards only');
+            
+            // Example: Update KPI values based on campaign
+            // In real implementation, this would fetch new data for the selected campaign
+            const kpiValues = {
+                'all': { submissions: 85, qualified: 32, notQualified: 28, momentum: '+8%' },
+                'auto': { submissions: 35, qualified: 14, notQualified: 12, momentum: '+5%' },
+                'mva': { submissions: 30, qualified: 11, notQualified: 10, momentum: '+12%' },
+                'medicare': { submissions: 20, qualified: 7, notQualified: 6, momentum: '-2%' },
+                'live-traffic': { submissions: 85, qualified: 32, notQualified: 28, momentum: '+8%' }
+            };
+            
+            const values = kpiValues[campaign] || kpiValues.all;
+            
+            // Update team KPI cards (agent panel would have different logic)
+            const teamKPIs = document.querySelectorAll('#team-performance .kpi-value');
+            if (teamKPIs.length >= 4) {
+                teamKPIs[0].textContent = values.submissions;
+                teamKPIs[1].textContent = values.qualified;
+                teamKPIs[2].textContent = values.notQualified;
+                teamKPIs[3].textContent = values.momentum;
+            }
+        }
+        
+        // ===== SIMULATE DATA UPDATES =====
+        // This simulates real-time data updates
+        setInterval(() => {
+            // In real implementation, this would fetch fresh data
+            // For now, just update timestamps
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // Update any "last updated" indicators
+            const updateIndicators = document.querySelectorAll('.last-updated');
+            updateIndicators.forEach(indicator => {
+                indicator.textContent = timeString;
+            });
+        }, 60000); // Every minute
     </script>
 </body>
 </html>
