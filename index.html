@@ -3,1137 +3,563 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Performance Dashboard - Human-Safe System</title>
+    <title>Performance Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ===== BASE RESET ===== */
+        /* ===== BASE RESET & LAYOUT ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
-            background: #f8f9fa;
-            color: #333;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #334155; line-height: 1.6; }
         
         /* ===== FIXED SIDEBAR ===== */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 220px;
-            height: 100vh;
-            background: #1a365d;
-            color: white;
-            overflow-y: auto;
-            padding-top: 20px;
-        }
-        
-        .sidebar-header {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid #2d4a7c;
-            margin-bottom: 20px;
-        }
-        
-        .sidebar-header h2 {
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .sidebar-nav {
-            list-style: none;
-        }
-        
-        .sidebar-nav li {
-            padding: 14px 20px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-left: 3px solid transparent;
-        }
-        
-        .sidebar-nav li:hover {
-            background: #2d4a7c;
-        }
-        
-        .sidebar-nav li.active {
-            background: #2d4a7c;
-            border-left: 3px solid #4299e1;
-            font-weight: 500;
-        }
-        
-        .sidebar-nav li.team-lead-only {
-            border-top: 1px solid #2d4a7c;
-            margin-top: 10px;
-            padding-top: 20px;
-            color: #a0aec0;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .sidebar { position: fixed; left: 0; top: 0; width: 220px; height: 100vh; background: #1e293b; color: white; }
+        .sidebar-header { padding: 24px 20px; border-bottom: 1px solid #334155; }
+        .sidebar-header h2 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .sidebar-nav { padding: 20px 0; }
+        .sidebar-nav ul { list-style: none; }
+        .sidebar-nav li { padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; border-left: 3px solid transparent; }
+        .sidebar-nav li:hover { background: #334155; }
+        .sidebar-nav li.active { background: #334155; border-left-color: #60a5fa; font-weight: 500; }
+        .sidebar-nav i { width: 20px; color: #94a3b8; }
+        .sidebar-nav li.active i { color: #60a5fa; }
+        .sidebar-footer { padding: 20px; border-top: 1px solid #334155; font-size: 13px; }
+        .data-status { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+        .status-dot.active { background: #10b981; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .timestamp { color: #94a3b8; font-size: 12px; }
         
         /* ===== MAIN CONTENT ===== */
-        .main-content {
-            margin-left: 220px;
-            padding: 30px;
-            min-height: 100vh;
-        }
+        .main-content { margin-left: 220px; padding: 30px; min-height: 100vh; max-width: calc(100vw - 220px); }
         
         /* ===== PANELS ===== */
-        .panel {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .panel.active {
-            display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        /* ===== HEADERS ===== */
-        .panel-header {
-            margin-bottom: 30px;
-        }
-        
-        .panel-header h1 {
-            font-size: 28px;
-            color: #2d3748;
-            margin-bottom: 8px;
-        }
-        
-        .panel-header p {
-            color: #718096;
-            font-size: 16px;
-        }
+        .panel { display: none; max-width: 1200px; margin: 0 auto; }
+        .panel.active { display: block; }
+        .panel-header { margin-bottom: 30px; }
+        .panel-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+        .panel-header p { color: #64748b; font-size: 16px; }
         
         /* ===== KPI CARDS ===== */
-        .kpi-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .kpi-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
-        }
-        
-        .kpi-card h3 {
-            font-size: 14px;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-        }
-        
-        .kpi-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 5px;
-        }
-        
-        .kpi-metric {
-            font-size: 14px;
-            color: #48bb78;
-        }
-        
-        /* ===== CAMPAIGN BUTTONS ===== */
-        .campaign-buttons {
-            display: flex;
-            gap: 10px;
-            margin: 25px 0;
-            flex-wrap: wrap;
-        }
-        
-        .campaign-btn {
-            padding: 8px 20px;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 20px;
-            color: #4a5568;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        
-        .campaign-btn:hover {
-            border-color: #4299e1;
-            color: #4299e1;
-        }
-        
-        .campaign-btn.active {
-            background: #4299e1;
-            border-color: #4299e1;
-            color: white;
-        }
+        .kpi-section { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 30px; }
+        .kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; }
+        .kpi-card h3 { font-size: 14px; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .kpi-value { font-size: 32px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .kpi-label { font-size: 13px; color: #94a3b8; }
         
         /* ===== VIEW TOGGLES ===== */
-        .view-toggles {
-            display: flex;
-            gap: 10px;
-            margin: 25px 0;
-            background: white;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            width: fit-content;
-        }
+        .view-toggles { display: flex; gap: 10px; margin-bottom: 25px; background: white; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0; width: fit-content; }
+        .view-toggle { padding: 10px 20px; background: transparent; border: 1px solid transparent; border-radius: 6px; color: #64748b; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .view-toggle:hover { background: #f1f5f9; }
+        .view-toggle.active { background: #3b82f6; color: white; border-color: #3b82f6; }
         
-        .view-toggle {
-            padding: 8px 20px;
-            background: transparent;
-            border: none;
-            border-radius: 6px;
-            color: #4a5568;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
+        /* ===== CHART SECTION ===== */
+        .chart-section { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 25px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .chart-header h3 { font-size: 18px; color: #1e293b; }
+        .chart-info { display: flex; align-items: center; gap: 12px; }
+        .data-status-indicator { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #64748b; }
+        .data-status-indicator .dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 2s infinite; }
+        .chart-container { height: 300px; position: relative; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
+        .chart-placeholder { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; text-align: center; background: #f8fafc; }
+        .chart-placeholder i { margin-bottom: 15px; color: #cbd5e1; }
+        .chart-legend { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #64748b; }
+        .legend-color { display: inline-block; width: 16px; height: 16px; border-radius: 4px; }
+        .legend-color.qualified { background: #10b981; }
+        .legend-color.not-qualified { background: #ef4444; }
+        .legend-color.pending { background: #3b82f6; }
+        .legend-color.callback { background: #f59e0b; }
         
-        .view-toggle:hover {
-            background: #edf2f7;
-        }
+        /* ===== CAMPAIGN FILTERS ===== */
+        .campaign-filters { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .campaign-btn { padding: 10px 20px; background: white; border: 1px solid #e2e8f0; border-radius: 20px; color: #64748b; cursor: pointer; font-weight: 500; }
+        .campaign-btn:hover { border-color: #cbd5e1; color: #334155; }
+        .campaign-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
         
-        .view-toggle.active {
-            background: #4299e1;
-            color: white;
-        }
+        /* ===== TEAM LAYOUT ===== */
+        .team-layout { display: grid; grid-template-columns: 1fr 320px; gap: 25px; margin-bottom: 25px; }
+        .team-chart-column { grid-column: 1; }
+        .top3-column { grid-column: 2; }
         
-        /* ===== CHART CONTAINERS ===== */
-        .chart-container {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border: 1px solid #e2e8f0;
-        }
+        /* ===== TOP 3 SECTION ===== */
+        .top3-section { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; height: 100%; }
+        .top3-header { margin-bottom: 20px; }
+        .top3-header h3 { font-size: 18px; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+        .top3-header .top3-subtitle { font-size: 14px; color: #64748b; }
+        .top3-container { margin-bottom: 20px; }
+        .top3-item { padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; background: #f8fafc; }
+        .top3-item:last-child { margin-bottom: 0; }
+        .top3-agent { font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px; }
+        .top3-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .top3-metric { text-align: center; }
+        .metric-value { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .metric-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .top3-placeholder { text-align: center; padding: 40px 20px; color: #94a3b8; background: #f8fafc; border-radius: 6px; border: 1px dashed #e2e8f0; }
+        .top3-footer { border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        .top3-footer p { font-size: 13px; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
         
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+        /* ===== DISCLAIMER ===== */
+        .disclaimer { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 16px; margin-top: 25px; }
+        .disclaimer p { font-size: 14px; color: #0369a1; display: flex; align-items: center; gap: 10px; }
+        .disclaimer i { color: #0ea5e9; }
         
-        .chart-header h3 {
-            font-size: 18px;
-            color: #2d3748;
-        }
+        /* ===== TEAM LEAD PANEL ===== */
+        .flow-overview { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+        .flow-status { display: flex; align-items: center; gap: 20px; }
+        .flow-indicator { width: 16px; height: 16px; border-radius: 50%; }
+        .flow-indicator.attention-needed { background: #ef4444; animation: pulse 2s infinite; }
+        .flow-text h3 { font-size: 18px; color: #1e293b; margin-bottom: 4px; }
+        .flow-text p { color: #64748b; font-size: 14px; }
         
-        .chart-variations {
-            display: flex;
-            gap: 10px;
-        }
+        /* ===== ATTENTION SIGNALS ===== */
+        .attention-signals { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .signal-column { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; }
+        .signal-header { margin-bottom: 20px; }
+        .signal-header h3 { font-size: 18px; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+        .signal-header p { font-size: 14px; color: #64748b; }
+        .signal-list { list-style: none; }
+        .signal-list li { padding: 14px 0; border-bottom: 1px solid #f1f5f9; display: flex; align-items: flex-start; gap: 12px; }
+        .signal-list li:last-child { border-bottom: none; }
+        .signal-icon { color: #64748b; width: 20px; padding-top: 2px; }
+        .signal-text { flex: 1; color: #475569; font-size: 15px; }
         
-        .chart-variation-btn {
-            padding: 6px 12px;
-            background: #edf2f7;
-            border: none;
-            border-radius: 4px;
-            color: #4a5568;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        /* ===== SUPPORT GRID ===== */
+        .support-grid-section { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 25px; }
+        .grid-header h3 { font-size: 18px; color: #1e293b; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .grid-disclaimer { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 16px; margin-top: 15px; }
+        .grid-disclaimer p { color: #7f1d1d; font-size: 14px; line-height: 1.5; }
+        .support-grid { display: grid; grid-template-columns: 200px 1fr 1fr; grid-template-rows: auto 1fr 1fr; gap: 1px; background: #e2e8f0; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        .grid-cell { background: white; padding: 20px; min-height: 120px; }
+        .grid-cell.header { background: #f8fafc; font-weight: 600; color: #1e293b; display: flex; flex-direction: column; justify-content: center; }
+        .grid-cell.header.empty { background: #f8fafc; }
+        .grid-cell.header h4 { font-size: 16px; margin-bottom: 6px; }
+        .grid-cell.header p { font-size: 13px; color: #64748b; font-weight: normal; }
+        .grid-cell.q1 { background: #fef2f2; border-left: 4px solid #ef4444; }
+        .grid-cell.q2 { background: #fffbeb; border-left: 4px solid #f59e0b; }
+        .grid-cell.q3 { background: #f0f9ff; border-left: 4px solid #0ea5e9; }
+        .grid-cell.q4 { background: #f0fdf4; border-left: 4px solid #10b981; }
+        .quadrant-label { font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 15px; }
+        .quadrant-content p { color: #475569; font-size: 14px; margin-bottom: 4px; }
         
-        .chart-variation-btn.active {
-            background: #4299e1;
-            color: white;
-        }
+        /* ===== VARIANCE SECTION ===== */
+        .variance-section { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; }
+        .variance-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .variance-header h3 { font-size: 18px; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+        .toggle-btn { padding: 8px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; color: #475569; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .toggle-btn:hover { background: #e2e8f0; }
+        .variance-content { transition: all 0.3s; }
+        .variance-content.collapsed { display: none; }
+        .variance-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+        .variance-metric { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; }
+        .variance-metric h4 { font-size: 14px; color: #64748b; margin-bottom: 8px; }
+        .variance-metric p { font-size: 16px; color: #1e293b; font-weight: 500; }
+        .variance-footer { border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        .variance-footer p { font-size: 13px; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
         
-        .chart-placeholder {
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #a0aec0;
-            font-style: italic;
-            border: 2px dashed #e2e8f0;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) { .team-layout { grid-template-columns: 1fr; } .top3-column { grid-column: 1; } }
+        @media (max-width: 768px) { .sidebar { width: 70px; } .main-content { margin-left: 70px; max-width: calc(100vw - 70px); padding: 20px; } .kpi-section { grid-template-columns: repeat(2, 1fr); } .attention-signals { grid-template-columns: 1fr; } .support-grid { grid-template-columns: 1fr; grid-template-rows: repeat(5, auto); } .grid-cell.header.empty { display: none; } }
+        @media (max-width: 480px) { .kpi-section { grid-template-columns: 1fr; } .view-toggles { flex-wrap: wrap; } .variance-metrics { grid-template-columns: 1fr; } }
         
-        /* ===== TOP 3 RECOGNITION PANEL ===== */
-        .recognition-panel {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .recognition-header {
-            margin-bottom: 20px;
-        }
-        
-        .recognition-header h3 {
-            font-size: 18px;
-            color: #2d3748;
-        }
-        
-        .recognition-header p {
-            color: #718096;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-        
-        .recognition-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-        
-        .recognition-card {
-            padding: 20px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .recognition-card .agent-name {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 15px;
-        }
-        
-        .recognition-metrics {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
-        }
-        
-        .metric-item {
-            text-align: center;
-        }
-        
-        .metric-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2d3748;
-        }
-        
-        .metric-label {
-            font-size: 12px;
-            color: #718096;
-            text-transform: uppercase;
-            margin-top: 5px;
-        }
-        
-        /* ===== TEAM LEAD PANEL SPECIFIC ===== */
-        .flow-state-indicator {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .flow-status {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-            margin-right: 15px;
-        }
-        
-        .flow-status.stable {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        
-        .flow-status.uneven {
-            background: #feebc8;
-            color: #744210;
-        }
-        
-        .flow-status.drifting {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-        
-        .flow-description {
-            display: inline;
-            color: #4a5568;
-        }
-        
-        .variance-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .variance-column {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .variance-column h3 {
-            font-size: 16px;
-            color: #2d3748;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .signal-item {
-            padding: 12px 0;
-            border-bottom: 1px solid #f7fafc;
-        }
-        
-        .signal-item:last-child {
-            border-bottom: none;
-        }
-        
-        .support-grid {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .grid-4x4 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .grid-header {
-            font-weight: 600;
-            color: #4a5568;
-            padding: 10px;
-            text-align: center;
-            background: #f7fafc;
-            border-radius: 6px;
-        }
-        
-        .grid-cell {
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            min-height: 100px;
-        }
-        
-        .grid-cell.q1 {
-            background: #fff5f5;
-            border-color: #fed7d7;
-        }
-        
-        .grid-cell.q2 {
-            background: #fffaf0;
-            border-color: #feebc8;
-        }
-        
-        .grid-cell.q3 {
-            background: #f0fff4;
-            border-color: #c6f6d5;
-        }
-        
-        .grid-cell.q4 {
-            background: #f7fafc;
-            border-color: #e2e8f0;
-        }
-        
-        /* ===== TABLES ===== */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
-        
-        th, td {
-            padding: 14px 16px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        th {
-            background: #f7fafc;
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 14px;
-        }
-        
-        tr:hover {
-            background: #f7fafc;
-        }
-        
-        /* ===== FILTERS ===== */
-        .filters {
-            display: flex;
-            gap: 10px;
-            margin: 20px 0;
-            align-items: center;
-        }
-        
-        select {
-            padding: 8px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            background: white;
-            color: #4a5568;
-        }
-        
-        .apply-btn, .reset-btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        
-        .apply-btn {
-            background: #4299e1;
-            color: white;
-        }
-        
-        .reset-btn {
-            background: #a0aec0;
-            color: white;
-        }
-        
-        /* ===== VIEW CONTENT ===== */
-        .view-content {
-            display: none;
-        }
-        
-        .view-content.active {
-            display: block;
-        }
+        /* ===== CHART STYLES ===== */
+        .stacked-bar-chart { height: 100%; display: flex; align-items: flex-end; justify-content: space-around; padding: 20px 10px 40px; position: relative; }
+        .chart-bar-container { width: 12%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; }
+        .chart-bar { width: 80%; display: flex; flex-direction: column-reverse; border-radius: 4px 4px 0 0; overflow: hidden; border: 1px solid #e2e8f0; }
+        .chart-hour-label { margin-top: 8px; font-size: 12px; color: #64748b; }
+        .chart-value-label { position: absolute; top: -25px; font-size: 12px; color: #475569; font-weight: 500; }
     </style>
 </head>
 <body>
     <!-- FIXED SIDEBAR -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <h2>Performance Dashboard</h2>
+            <h2><i class="fas fa-chart-line"></i> Dashboard</h2>
         </div>
-        <ul class="sidebar-nav">
-            <li class="active" data-panel="agent-performance">My Performance</li>
-            <li data-panel="team-performance">Team Performance</li>
-            <li class="team-lead-only">Team Lead Access</li>
-            <li data-panel="team-lead">Team Flow & Support</li>
-        </ul>
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="active" data-panel="agent"><i class="fas fa-user"></i> My Performance</li>
+                <li data-panel="team"><i class="fas fa-users"></i> Team Performance</li>
+                <li data-panel="lead"><i class="fas fa-headset"></i> Team Lead View</li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="data-status"><span class="status-dot active"></span><span>Data Stream Active</span></div>
+            <div class="timestamp" id="current-time">Loading...</div>
+        </div>
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
-        <!-- AGENT PERFORMANCE PANEL -->
-        <section id="agent-performance" class="panel active">
-            <div class="panel-header">
-                <h1>Welcome Agent</h1>
-                <p>Monitor your activity flow and submissions</p>
+        
+        <!-- ===== AGENT PERFORMANCE PANEL ===== -->
+        <section id="agent-panel" class="panel active">
+            <header class="panel-header">
+                <h1>My Performance</h1>
+                <p>View your submission activity and outcomes</p>
+            </header>
+
+            <!-- AGENT KPI CARDS -->
+            <div class="kpi-section">
+                <div class="kpi-card"><h3><i class="fas fa-paper-plane"></i> Submissions</h3><div class="kpi-value" id="agent-submissions">19</div><div class="kpi-label">Current Shift</div></div>
+                <div class="kpi-card"><h3><i class="fas fa-check-circle"></i> Qualified</h3><div class="kpi-value" id="agent-qualified">7</div><div class="kpi-label">37% of total</div></div>
+                <div class="kpi-card"><h3><i class="fas fa-times-circle"></i> Not Qualified</h3><div class="kpi-value" id="agent-not-qualified">6</div><div class="kpi-label">32% of total</div></div>
+                <div class="kpi-card"><h3><i class="fas fa-clock"></i> Pending</h3><div class="kpi-value" id="agent-pending">4</div><div class="kpi-label">21% of total</div></div>
+                <div class="kpi-card"><h3><i class="fas fa-redo"></i> Call Back</h3><div class="kpi-value" id="agent-callback">2</div><div class="kpi-label">10% of total</div></div>
             </div>
-            
-            <!-- KPI Cards -->
-            <div class="kpi-container">
-                <div class="kpi-card">
-                    <h3>Submissions</h3>
-                    <div class="kpi-value">19</div>
-                    <div class="kpi-metric">Current Shift</div>
-                </div>
-                
-                <div class="kpi-card">
-                    <h3>Qualified</h3>
-                    <div class="kpi-value">7</div>
-                    <div class="kpi-metric">0.39 SPH</div>
-                </div>
-                
-                <div class="kpi-card">
-                    <h3>Not Qualified</h3>
-                    <div class="kpi-value">6</div>
-                    <div class="kpi-metric">Quality Review</div>
-                </div>
-                
-                <div class="kpi-card">
-                    <h3>Momentum</h3>
-                    <div class="kpi-value">+12%</div>
-                    <div class="kpi-metric">vs previous hour</div>
-                </div>
-            </div>
-            
-            <!-- View Toggles -->
+
+            <!-- CHART VIEW TOGGLES -->
             <div class="view-toggles">
-                <button class="view-toggle active" data-view="hourly">Hourly Performance</button>
-                <button class="view-toggle" data-view="submissions">My Submissions</button>
+                <button class="view-toggle active" data-view="hourly"><i class="fas fa-chart-bar"></i> Hourly View</button>
+                <button class="view-toggle" data-view="distribution"><i class="fas fa-chart-pie"></i> Distribution</button>
+                <button class="view-toggle" data-view="shift"><i class="fas fa-calendar-day"></i> Shift-to-Date</button>
             </div>
-            
-            <!-- Hourly Performance View -->
-            <div id="agent-hourly-view" class="view-content active">
-                <!-- Submission Flow State Chart -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Submission Flow State</h3>
-                        <div class="chart-variations">
-                            <button class="chart-variation-btn active">Hourly</button>
-                            <button class="chart-variation-btn">Distribution</button>
-                            <button class="chart-variation-btn">Momentum</button>
-                        </div>
-                    </div>
-                    <div class="chart-placeholder">
-                        Stacked Bar Chart: Hourly submissions by QC disposition<br>
-                        Green=Qualified, Red=Not Qualified, Blue=Pending, Yellow=Call Back
-                    </div>
+
+            <!-- AGENT CHART AREA -->
+            <div class="chart-section">
+                <div class="chart-header"><h3>Submission Flow State</h3><div class="chart-info"><span class="data-status-indicator"><span class="dot"></span>Live Data</span></div></div>
+                <div class="chart-container" id="agent-chart-container">
+                    <div class="chart-placeholder" id="agent-chart-placeholder"><p><i class="fas fa-chart-bar fa-2x"></i></p><p>Awaiting submission data</p></div>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color qualified"></span><span>Qualified</span></div>
+                    <div class="legend-item"><span class="legend-color not-qualified"></span><span>Not Qualified</span></div>
+                    <div class="legend-item"><span class="legend-color pending"></span><span>Pending</span></div>
+                    <div class="legend-item"><span class="legend-color callback"></span><span>Call Back</span></div>
                 </div>
             </div>
-            
-            <!-- My Submissions View -->
-            <div id="agent-submissions-view" class="view-content">
-                <h3>My Submissions</h3>
-                
-                <!-- Filters -->
-                <div class="filters">
-                    <select id="campaign-filter">
-                        <option>All Campaigns</option>
-                        <option>Auto</option>
-                        <option>MVA</option>
-                        <option>Medicare</option>
-                    </select>
-                    <select id="did-filter">
-                        <option>All DIDs</option>
-                        <option>A1 RTB</option>
-                        <option>M22 RTB</option>
-                        <option>D4 REV</option>
-                    </select>
-                    <select id="disposition-filter">
-                        <option>Qualified</option>
-                        <option>Not Qualified</option>
-                        <option>Pending</option>
-                        <option>All</option>
-                    </select>
-                    <button class="apply-btn">Apply</button>
-                    <button class="reset-btn">Reset</button>
-                </div>
-                
-                <!-- Submissions Table -->
-                <table>
-                    <thead>
-                        <tr>
-                            <th>TIMESTAMP</th>
-                            <th>CAMPAIGN</th>
-                            <th>DID</th>
-                            <th>STATE</th>
-                            <th>DURATION</th>
-                            <th>DISPOSITION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Dec 31, 1:10 AM</td>
-                            <td>Auto</td>
-                            <td>A1 RTB</td>
-                            <td>TX</td>
-                            <td>3:10</td>
-                            <td>Qualified</td>
-                        </tr>
-                        <tr>
-                            <td>Dec 30, 10:06 PM</td>
-                            <td>Medicare</td>
-                            <td>D4 REV</td>
-                            <td>TX</td>
-                            <td>4:40</td>
-                            <td>Qualified</td>
-                        </tr>
-                        <tr>
-                            <td>Dec 30, 9:05 PM</td>
-                            <td>MVA</td>
-                            <td>M22 RTB</td>
-                            <td>WA</td>
-                            <td>4:20</td>
-                            <td>Qualified</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+
+            <!-- DATA DISCLAIMER -->
+            <div class="disclaimer"><p><i class="fas fa-info-circle"></i> Data reflects submission timestamps and QC dispositions only.</p></div>
         </section>
 
-        <!-- TEAM PERFORMANCE PANEL -->
-        <section id="team-performance" class="panel">
-            <div class="panel-header">
-                <h1>Teamwork makes the Dreamwork</h1>
-                <p>Monitor team flow and collective activity</p>
-            </div>
-            
-            <!-- Campaign Buttons -->
-            <div class="campaign-buttons">
-                <button class="campaign-btn active" data-campaign="all">All</button>
+        <!-- ===== TEAM PERFORMANCE PANEL ===== -->
+        <section id="team-panel" class="panel">
+            <header class="panel-header"><h1>Team Performance</h1><p>Team submission patterns and activity</p></header>
+
+            <!-- CAMPAIGN FILTERS -->
+            <div class="campaign-filters">
+                <button class="campaign-btn active" data-campaign="all">All Campaigns</button>
                 <button class="campaign-btn" data-campaign="auto">Auto</button>
                 <button class="campaign-btn" data-campaign="mva">MVA</button>
                 <button class="campaign-btn" data-campaign="medicare">Medicare</button>
-                <button class="campaign-btn" data-campaign="live-traffic">Live Traffic</button>
+                <button class="campaign-btn" data-campaign="live">Live Traffic</button>
             </div>
-            
-            <!-- Team KPI Cards -->
-            <div class="kpi-container">
-                <div class="kpi-card">
-                    <h3>Submissions</h3>
-                    <div class="kpi-value">85</div>
-                    <div class="kpi-metric">Current Shift</div>
-                </div>
-                
-                <div class="kpi-card">
-                    <h3>Qualified</h3>
-                    <div class="kpi-value">32</div>
-                    <div class="kpi-metric">1.78 SPH</div>
-                </div>
-                
-                <div class="kpi-card">
-                    <h3>Not Qualified</h3>
-                    <div class="kpi-value">28</div>
-                    <div class="kpi-metric">Quality Review</div>
-                </div>
-                
-                <div class="kpi-card">
-                    <h3>Momentum</h3>
-                    <div class="kpi-value">+8%</div>
-                    <div class="kpi-metric">vs previous hour</div>
-                </div>
+
+            <!-- TEAM KPI CARDS -->
+            <div class="kpi-section">
+                <div class="kpi-card"><h3><i class="fas fa-paper-plane"></i> Team Submissions</h3><div class="kpi-value" id="team-submissions">85</div><div class="kpi-label">Current Shift</div></div>
+                <div class="kpi-card"><h3><i class="fas fa-check-circle"></i> Team Qualified</h3><div class="kpi-value" id="team-qualified">32</div><div class="kpi-label">38% of total</div></div>
+                <div class="kpi-card"><h3><i class="fas fa-times-circle"></i> Team Not Qualified</h3><div class="kpi-value" id="team-not-qualified">28</div><div class="kpi-label">33% of total</div></div>
+                <div class="kpi-card"><h3><i class="fas fa-clock"></i> Team Pending</h3><div class="kpi-value" id="team-pending">15</div><div class="kpi-label">18% of total</div></div>
+                <div class="kpi-card"><h3><i class="fas fa-redo"></i> Team Call Back</h3><div class="kpi-value" id="team-callback">10</div><div class="kpi-label">11% of total</div></div>
             </div>
-            
-            <!-- Team View Toggles -->
-            <div class="view-toggles">
-                <button class="view-toggle active" data-view="hourly">Team Hourly</button>
-                <button class="view-toggle" data-view="live">Live Submissions</button>
-                <button class="view-toggle" data-view="did">DID Performance</button>
-            </div>
-            
-            <!-- Team Hourly View -->
-            <div id="team-hourly-view" class="view-content active">
-                <!-- Team Flow State Chart -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Team Flow State</h3>
-                        <div class="chart-variations">
-                            <button class="chart-variation-btn active">Hourly</button>
-                            <button class="chart-variation-btn">Distribution</button>
-                            <button class="chart-variation-btn">Campaign View</button>
-                        </div>
-                    </div>
-                    <div class="chart-placeholder">
-                        Team Stacked Bar Chart: Hourly submissions by QC disposition<br>
-                        Shows team collective flow pattern
-                    </div>
-                </div>
-                
-                <!-- Top 3 Recognition Panel -->
-                <div class="recognition-panel">
-                    <div class="recognition-header">
-                        <h3>Current Activity Highlights</h3>
-                        <p>Based on current shift activity • Shows both effort and outcomes</p>
-                    </div>
-                    <div class="recognition-grid">
-                        <div class="recognition-card">
-                            <div class="agent-name">Alex Martin</div>
-                            <div class="recognition-metrics">
-                                <div class="metric-item">
-                                    <div class="metric-value">8</div>
-                                    <div class="metric-label">Qualified</div>
-                                </div>
-                                <div class="metric-item">
-                                    <div class="metric-value">22</div>
-                                    <div class="metric-label">Submissions</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="recognition-card">
-                            <div class="agent-name">Jamie Chen</div>
-                            <div class="recognition-metrics">
-                                <div class="metric-item">
-                                    <div class="metric-value">7</div>
-                                    <div class="metric-label">Qualified</div>
-                                </div>
-                                <div class="metric-item">
-                                    <div class="metric-value">19</div>
-                                    <div class="metric-label">Submissions</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="recognition-card">
-                            <div class="agent-name">Taylor Rodriguez</div>
-                            <div class="recognition-metrics">
-                                <div class="metric-item">
-                                    <div class="metric-value">6</div>
-                                    <div class="metric-label">Qualified</div>
-                                </div>
-                                <div class="metric-item">
-                                    <div class="metric-value">25</div>
-                                    <div class="metric-label">Submissions</div>
-                                </div>
-                            </div>
+
+            <!-- TEAM CHART & TOP 3 LAYOUT -->
+            <div class="team-layout">
+                <div class="team-chart-column">
+                    <div class="chart-section">
+                        <div class="chart-header"><h3>Team Submission Flow</h3></div>
+                        <div class="chart-container" id="team-chart-container">
+                            <div class="chart-placeholder" id="team-chart-placeholder"><p><i class="fas fa-chart-bar fa-2x"></i></p><p>Team submission flow (awaiting data)</p></div>
                         </div>
                     </div>
                 </div>
+                <div class="top3-column">
+                    <div class="top3-section">
+                        <div class="top3-header"><h3><i class="fas fa-star"></i> Current Activity Patterns</h3><p class="top3-subtitle">Based on submission and outcome counts</p></div>
+                        <div class="top3-container" id="top3-container"><div class="top3-placeholder"><p>Loading activity patterns...</p></div></div>
+                        <div class="top3-footer"><p><i class="fas fa-info-circle"></i> Sorted by Qualified count • Shows both effort (Submissions) and outcomes (Qualified)</p></div>
+                    </div>
+                </div>
             </div>
-            
-            <!-- Live Submissions View -->
-            <div id="team-live-view" class="view-content">
-                <h3>Live Submissions</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>TIMESTAMP</th>
-                            <th>CLOSER NAME</th>
-                            <th>DID</th>
-                            <th>STATE</th>
-                            <th>CAMPAIGN</th>
-                            <th>DURATION</th>
-                            <th>DISPOSITION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Dec 31, 3:20 AM</td>
-                            <td>Agent 1</td>
-                            <td>DA REV</td>
-                            <td>NY</td>
-                            <td>Medicare</td>
-                            <td>1:15</td>
-                            <td>Pending</td>
-                        </tr>
-                        <tr>
-                            <td>Dec 31, 2:15 AM</td>
-                            <td>Agent 1</td>
-                            <td>M22 RTB</td>
-                            <td>FL</td>
-                            <td>MVA</td>
-                            <td>2:10</td>
-                            <td>Not Qualified</td>
-                        </tr>
-                        <tr>
-                            <td>Dec 31, 1:10 AM</td>
-                            <td>Agent 1</td>
-                            <td>A1 RTB</td>
-                            <td>TX</td>
-                            <td>Auto</td>
-                            <td>3:10</td>
-                            <td>Qualified</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- DID Performance View -->
-            <div id="team-did-view" class="view-content">
-                <h3>DID Performance</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>DID</th>
-                            <th>CAMPAIGN</th>
-                            <th>SUBMISSIONS</th>
-                            <th>QUALIFIED</th>
-                            <th>FPH</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>A1 RTB</td>
-                            <td>Auto</td>
-                            <td>24</td>
-                            <td>10</td>
-                            <td>0.42</td>
-                        </tr>
-                        <tr>
-                            <td>M22 RTB</td>
-                            <td>MVA</td>
-                            <td>18</td>
-                            <td>8</td>
-                            <td>0.38</td>
-                        </tr>
-                        <tr>
-                            <td>D4 REV</td>
-                            <td>Medicare</td>
-                            <td>12</td>
-                            <td>5</td>
-                            <td>0.28</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <div class="disclaimer"><p><i class="fas fa-info-circle"></i> Team data reflects aggregated submission patterns only. Individual patterns vary.</p></div>
         </section>
 
-        <!-- TEAM LEAD PANEL -->
-        <section id="team-lead" class="panel">
-            <div class="panel-header">
-                <h1>Team Flow & Attention Map</h1>
-                <p>Where is support needed right now?</p>
-            </div>
-            
-            <!-- Flow State Indicator -->
-            <div class="flow-state-indicator">
-                <span class="flow-status uneven">Uneven Flow</span>
-                <span class="flow-description">Activity clustered in 2-hour window • Multiple friction points detected</span>
-            </div>
-            
-            <!-- Variance Detection -->
-            <div class="variance-grid">
-                <div class="variance-column">
-                    <h3>Person-Side Friction Signals</h3>
-                    <div class="signal-item">Alex: 40 minutes since last submission</div>
-                    <div class="signal-item">Jamie: 100% Not Qualified last hour</div>
-                    <div class="signal-item">Taylor: Consistently 2+ minute wait between calls</div>
-                    <div class="signal-item">Morgan: 3 callbacks pending follow-up</div>
-                </div>
-                <div class="variance-column">
-                    <h3>System-Side Friction Signals</h3>
-                    <div class="signal-item">Auto campaign: 15% lower answer rate</div>
-                    <div class="signal-item">Medicare: Average wait time +30 seconds</div>
-                    <div class="signal-item">DID A1-RTB: 3 failed transfers</div>
-                    <div class="signal-item">System latency: Occasional 5+ second delays</div>
+        <!-- ===== TEAM LEAD PANEL ===== -->
+        <section id="lead-panel" class="panel">
+            <header class="panel-header"><h1><i class="fas fa-headset"></i> Team Lead View</h1><p>Where is help needed? Based on submission patterns only</p></header>
+
+            <!-- FLOW OVERVIEW -->
+            <div class="flow-overview">
+                <div class="flow-status"><span class="flow-indicator attention-needed"></span>
+                    <div class="flow-text"><h3>Attention Needed</h3><p>Submission gaps and skewed outcomes detected in last hour</p></div>
                 </div>
             </div>
-            
-            <!-- Support Allocation Grid -->
-            <div class="support-grid">
-                <h3>Support Allocation Map</h3>
-                <p style="color: #718096; margin-top: 5px;">Where to focus attention right now</p>
-                
-                <div class="grid-4x4">
-                    <div class="grid-header"></div>
-                    <div class="grid-header">Low Variance</div>
-                    <div class="grid-header">High Variance</div>
-                    
-                    <div class="grid-header">Person-Side</div>
-                    <div class="grid-cell q4">
-                        <strong>Q4: Stable patterns</strong><br>
-                        <small style="color: #718096;">Monitor, no action needed</small>
-                    </div>
-                    <div class="grid-cell q2">
-                        <strong>Q2: Needs conversation</strong><br>
-                        <small style="color: #744210;">Jamie: Quality check-in</small><br>
-                        <small style="color: #744210;">Alex: Activity check</small>
-                    </div>
-                    
-                    <div class="grid-header">System-Side</div>
-                    <div class="grid-cell q3">
-                        <strong>Q3: Monitoring</strong><br>
-                        <small style="color: #718096;">System latency observation</small>
-                    </div>
-                    <div class="grid-cell q1">
-                        <strong>Q1: Immediate attention</strong><br>
-                        <small style="color: #742a2a;">Auto campaign answer rate</small><br>
-                        <small style="color: #742a2a;">DID A1-RTB transfers</small>
-                    </div>
+
+            <!-- ATTENTION SIGNALS - TWO COLUMNS -->
+            <div class="attention-signals">
+                <div class="signal-column">
+                    <div class="signal-header"><h3><i class="fas fa-user"></i> Agent Submission Patterns</h3><p>Based on submission timestamps and outcomes</p></div>
+                    <ul class="signal-list" id="person-signals">
+                        <li><span class="signal-icon"><i class="fas fa-clock"></i></span><span class="signal-text">Alex: No submissions recorded in last 40 minutes</span></li>
+                        <li><span class="signal-icon"><i class="fas fa-chart-line"></i></span><span class="signal-text">Jamie: Outcomes skewed Not Qualified in last hour (5/5)</span></li>
+                        <li><span class="signal-icon"><i class="fas fa-gap"></i></span><span class="signal-text">Taylor: Submission gaps observed (12+ minutes between)</span></li>
+                        <li><span class="signal-icon"><i class="fas fa-percentage"></i></span><span class="signal-text">Morgan: Call Back rate elevated (3/8 submissions)</span></li>
+                    </ul>
+                </div>
+                <div class="signal-column">
+                    <div class="signal-header"><h3><i class="fas fa-server"></i> System Submission Patterns</h3><p>Based on submission timing and grouping patterns</p></div>
+                    <ul class="signal-list" id="system-signals">
+                        <li><span class="signal-icon"><i class="fas fa-arrow-down"></i></span><span class="signal-text">Auto campaign: Submission rate decreased 15% this hour</span></li>
+                        <li><span class="signal-icon"><i class="fas fa-wave-square"></i></span><span class="signal-text">Medicare: Submission timing irregular (clustered)</span></li>
+                        <li><span class="signal-icon"><i class="fas fa-exclamation-triangle"></i></span><span class="signal-text">DID A1-RTB: Failed submission patterns detected (3)</span></li>
+                        <li><span class="signal-icon"><i class="fas fa-hourglass-half"></i></span><span class="signal-text">2–3 PM: Submission volume 30% below previous hour</span></li>
+                    </ul>
                 </div>
             </div>
-            
-            <!-- Optional Diagnostic View -->
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h3>Variance Detection (Optional View)</h3>
-                    <div class="chart-variations">
-                        <button class="chart-variation-btn active">Now</button>
-                        <button class="chart-variation-btn">This Hour</button>
-                        <button class="chart-variation-btn">Today</button>
-                    </div>
+
+            <!-- SUPPORT ALLOCATION GRID -->
+            <div class="support-grid-section">
+                <div class="grid-header"><h3><i class="fas fa-th"></i> Support Allocation Map</h3>
+                    <div class="grid-disclaimer"><p><strong>Important:</strong> Placement is based on submission patterns only. It does not reflect call activity, effort inside calls, or intent. Grid placement does not imply performance quality.</p></div>
                 </div>
-                <div class="chart-placeholder">
-                    Diagnostic Rankings for Variance Detection Only<br>
-                    Shows: Highest Qualified • Highest Activity • Highest Consistency<br>
-                    <small style="color: #a0aec0; display: block; margin-top: 10px;">
-                        Note: For team lead diagnostic use only. Not shared with team.
-                    </small>
+                <div class="support-grid">
+                    <div class="grid-cell header empty"></div><div class="grid-cell header"><h4>Low Variance</h4></div><div class="grid-cell header"><h4>High Variance</h4></div>
+                    <div class="grid-cell header"><h4>Person-Side</h4><p>Submission patterns</p></div>
+                    <div class="grid-cell q4"><div class="quadrant-label">Q4: Stable Patterns</div><div class="quadrant-content"><p><strong>Alex</strong></p><p>Consistent submission pattern</p></div></div>
+                    <div class="grid-cell q2"><div class="quadrant-label">Q2: Needs Conversation</div><div class="quadrant-content"><p><strong>Jamie</strong></p><p>Outcome pattern check-in</p></div></div>
+                    <div class="grid-cell header"><h4>System-Side</h4><p>Submission timing</p></div>
+                    <div class="grid-cell q3"><div class="quadrant-label">Q3: Monitoring</div><div class="quadrant-content"><p><strong>System timing</strong></p><p>Observation only</p></div></div>
+                    <div class="grid-cell q1"><div class="quadrant-label">Q1: Attention Needed</div><div class="quadrant-content"><p><strong>Auto campaign</strong></p><p>Submission rate attention</p></div></div>
+                </div>
+            </div>
+
+            <!-- OPTIONAL VARIANCE VIEW -->
+            <div class="variance-section">
+                <div class="variance-header"><h3><i class="fas fa-search"></i> Submission Variance Detail (Optional)</h3><button class="toggle-btn" id="toggle-variance"><i class="fas fa-chevron-down"></i> Show</button></div>
+                <div class="variance-content collapsed" id="variance-content">
+                    <div class="variance-metrics">
+                        <div class="variance-metric"><h4>Highest Qualified Count</h4><p>Alex: 8 Qualified</p></div>
+                        <div class="variance-metric"><h4>Highest Submission Count</h4><p>Taylor: 25 Submissions</p></div>
+                        <div class="variance-metric"><h4>Most Consistent Pattern</h4><p>Morgan: Hourly consistency 85%</p></div>
+                    </div>
+                    <div class="variance-footer"><p><i class="fas fa-info-circle"></i> For pattern detection only, not evaluation</p></div>
                 </div>
             </div>
         </section>
     </main>
 
     <script>
-        // ===== PANEL SWITCHING =====
-        document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar navigation
-            const sidebarItems = document.querySelectorAll('.sidebar-nav li[data-panel]');
+        // ===== DATA CONFIGURATION =====
+        const DashboardData = {
+            agent: {
+                submissions: 19, qualified: 7, notQualified: 6, pending: 4, callback: 2,
+                hourlyData: [
+                    { hour: '7 AM', qualified: 2, notQualified: 1, pending: 1, callback: 0 },
+                    { hour: '8 AM', qualified: 1, notQualified: 2, pending: 0, callback: 1 },
+                    { hour: '9 AM', qualified: 2, notQualified: 0, pending: 1, callback: 0 },
+                    { hour: '10 AM', qualified: 1, notQualified: 1, pending: 1, callback: 0 },
+                    { hour: '11 AM', qualified: 0, notQualified: 1, pending: 0, callback: 1 },
+                    { hour: '12 PM', qualified: 1, notQualified: 1, pending: 1, callback: 0 }
+                ]
+            },
+            team: {
+                submissions: 85, qualified: 32, notQualified: 28, pending: 15, callback: 10,
+                hourlyData: [
+                    { hour: '7 AM', qualified: 8, notQualified: 6, pending: 3, callback: 2 },
+                    { hour: '8 AM', qualified: 10, notQualified: 5, pending: 4, callback: 1 },
+                    { hour: '9 AM', qualified: 6, notQualified: 8, pending: 2, callback: 2 },
+                    { hour: '10 AM', qualified: 5, notQualified: 4, pending: 3, callback: 1 },
+                    { hour: '11 AM', qualified: 2, notQualified: 3, pending: 2, callback: 3 },
+                    { hour: '12 PM', qualified: 1, notQualified: 2, pending: 1, callback: 1 }
+                ],
+                topAgents: [
+                    { name: 'Alex Martin', submissions: 22, qualified: 8 },
+                    { name: 'Jamie Chen', submissions: 19, qualified: 7 },
+                    { name: 'Taylor Rodriguez', submissions: 25, qualified: 6 }
+                ],
+                campaigns: {
+                    all: { submissions: 85, qualified: 32, notQualified: 28, pending: 15, callback: 10 },
+                    auto: { submissions: 35, qualified: 14, notQualified: 12, pending: 6, callback: 3 },
+                    mva: { submissions: 30, qualified: 11, notQualified: 10, pending: 5, callback: 4 },
+                    medicare: { submissions: 20, qualified: 7, notQualified: 6, pending: 4, callback: 3 }
+                }
+            }
+        };
+
+        const ChartColors = {
+            qualified: '#10b981', notQualified: '#ef4444', pending: '#3b82f6', callback: '#f59e0b'
+        };
+
+        // ===== CHART RENDERING FUNCTIONS =====
+        function renderStackedBarChart(containerId, data, usePlaceholder = false) {
+            const container = document.getElementById(containerId);
+            const placeholder = container.querySelector('.chart-placeholder');
             
-            sidebarItems.forEach(item => {
+            container.innerHTML = '';
+            if (usePlaceholder || !data || data.length === 0) {
+                if (placeholder) placeholder.style.display = 'flex';
+                return;
+            }
+            
+            if (placeholder) placeholder.style.display = 'none';
+            
+            const chart = document.createElement('div');
+            chart.className = 'stacked-bar-chart';
+            
+            const maxValue = Math.max(...data.map(item => 
+                item.qualified + item.notQualified + item.pending + item.callback
+            ));
+            
+            data.forEach((item, index) => {
+                const total = item.qualified + item.notQualified + item.pending + item.callback;
+                const barHeight = (total / maxValue) * 80;
+                
+                const barContainer = document.createElement('div');
+                barContainer.className = 'chart-bar-container';
+                
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = barHeight + '%';
+                
+                const segments = [
+                    { value: item.callback, color: ChartColors.callback },
+                    { value: item.pending, color: ChartColors.pending },
+                    { value: item.notQualified, color: ChartColors.notQualified },
+                    { value: item.qualified, color: ChartColors.qualified }
+                ];
+                
+                segments.forEach(segment => {
+                    if (segment.value > 0) {
+                        const segmentHeight = (segment.value / total) * 100;
+                        const segmentEl = document.createElement('div');
+                        segmentEl.style.height = segmentHeight + '%';
+                        segmentEl.style.backgroundColor = segment.color;
+                        segmentEl.style.borderBottom = '1px solid rgba(255,255,255,0.3)';
+                        segmentEl.title = `${segment.value} submissions`;
+                        bar.appendChild(segmentEl);
+                    }
+                });
+                
+                const hourLabel = document.createElement('div');
+                hourLabel.className = 'chart-hour-label';
+                hourLabel.textContent = item.hour;
+                
+                const valueLabel = document.createElement('div');
+                valueLabel.className = 'chart-value-label';
+                valueLabel.textContent = total;
+                valueLabel.style.left = `${(index * 12) + 4}%`;
+                
+                barContainer.appendChild(bar);
+                barContainer.appendChild(hourLabel);
+                chart.appendChild(barContainer);
+                container.appendChild(valueLabel);
+            });
+            
+            container.appendChild(chart);
+        }
+
+        function renderTop3Agents(containerId, agents) {
+            const container = document.getElementById(containerId);
+            if (!agents || agents.length === 0) return;
+            
+            container.innerHTML = '';
+            agents.forEach(agent => {
+                const item = document.createElement('div');
+                item.className = 'top3-item';
+                item.innerHTML = `
+                    <div class="top3-agent">${agent.name}</div>
+                    <div class="top3-metrics">
+                        <div class="top3-metric">
+                            <div class="metric-value">${agent.submissions}</div>
+                            <div class="metric-label">Submissions</div>
+                        </div>
+                        <div class="top3-metric">
+                            <div class="metric-value">${agent.qualified}</div>
+                            <div class="metric-label">Qualified</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // ===== PANEL MANAGEMENT =====
+        function switchPanel(panelId) {
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav li').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById(panelId + '-panel').classList.add('active');
+            document.querySelector(`.sidebar-nav li[data-panel="${panelId}"]`).classList.add('active');
+            
+            if (panelId === 'agent') {
+                renderStackedBarChart('agent-chart-container', DashboardData.agent.hourlyData);
+            } else if (panelId === 'team') {
+                renderStackedBarChart('team-chart-container', DashboardData.team.hourlyData);
+                renderTop3Agents('top3-container', DashboardData.team.topAgents);
+            }
+        }
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize time display
+            function updateTime() {
+                const now = new Date();
+                document.getElementById('current-time').textContent = 
+                    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            updateTime();
+            setInterval(updateTime, 60000);
+            
+            // Sidebar navigation
+            document.querySelectorAll('.sidebar-nav li').forEach(item => {
                 item.addEventListener('click', function() {
                     const panelId = this.getAttribute('data-panel');
-                    
-                    // Update active state in sidebar
-                    sidebarItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Hide all panels
-                    document.querySelectorAll('.panel').forEach(panel => {
-                        panel.classList.remove('active');
-                    });
-                    
-                    // Show selected panel
-                    document.getElementById(panelId).classList.add('active');
-                    
-                    // Reset view toggles when switching panels
-                    resetViewToggles(panelId);
+                    switchPanel(panelId);
                 });
             });
             
-            // ===== AGENT PANEL VIEW TOGGLES =====
-            document.querySelectorAll('#agent-performance .view-toggle').forEach(button => {
+            // View toggles
+            document.querySelectorAll('.view-toggle').forEach(button => {
                 button.addEventListener('click', function() {
                     const view = this.getAttribute('data-view');
-                    
-                    // Update active button
-                    document.querySelectorAll('#agent-performance .view-toggle').forEach(btn => {
-                        btn.classList.remove('active');
-                    });
+                    document.querySelectorAll('.view-toggle').forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // Show/hide views
-                    document.getElementById('agent-hourly-view').classList.toggle('active', view === 'hourly');
-                    document.getElementById('agent-submissions-view').classList.toggle('active', view === 'submissions');
+                    // In a real implementation, this would switch chart data
+                    console.log('Switched to view:', view);
                 });
             });
             
-            // ===== TEAM PANEL VIEW TOGGLES =====
-            document.querySelectorAll('#team-performance .view-toggle').forEach(button => {
-                button.addEventListener('click', function() {
-                    const view = this.getAttribute('data-view');
-                    
-                    // Update active button
-                    document.querySelectorAll('#team-performance .view-toggle').forEach(btn => {
-                        btn.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    // Show/hide views
-                    document.getElementById('team-hourly-view').classList.toggle('active', view === 'hourly');
-                    document.getElementById('team-live-view').classList.toggle('active', view === 'live');
-                    document.getElementById('team-did-view').classList.toggle('active', view === 'did');
-                });
-            });
-            
-            // ===== CAMPAIGN BUTTONS =====
-            const campaignButtons = document.querySelectorAll('.campaign-btn');
-            campaignButtons.forEach(button => {
+            // Campaign buttons
+            document.querySelectorAll('.campaign-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const campaign = this.getAttribute('data-campaign');
-                    
-                    // Update active state
-                    campaignButtons.forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.campaign-btn').forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // Only update KPI cards (existing behavior preserved)
-                    updateKPICardsForCampaign(campaign);
+                    // Update team KPIs based on campaign
+                    const campaignData = DashboardData.team.campaigns[campaign] || DashboardData.team.campaigns.all;
+                    document.getElementById('team-submissions').textContent = campaignData.submissions;
+                    document.getElementById('team-qualified').textContent = campaignData.qualified;
+                    document.getElementById('team-not-qualified').textContent = campaignData.notQualified;
+                    document.getElementById('team-pending').textContent = campaignData.pending;
+                    document.getElementById('team-callback').textContent = campaignData.callback;
                     
                     // Live Traffic special behavior
-                    if (campaign === 'live-traffic') {
-                        console.log('Live Traffic: Opening state panel (existing functionality)');
+                    if (campaign === 'live') {
+                        console.log('Live Traffic: Would open state panel');
                     }
                 });
             });
             
-            // ===== CHART VARIATION BUTTONS =====
-            document.querySelectorAll('.chart-variation-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    // Update active state in this group
-                    const parent = this.closest('.chart-variations');
-                    parent.querySelectorAll('.chart-variation-btn').forEach(btn => {
-                        btn.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    // In a real implementation, this would switch chart data
-                    console.log('Chart view switched to:', this.textContent);
-                });
+            // Variance toggle
+            document.getElementById('toggle-variance').addEventListener('click', function() {
+                const content = document.getElementById('variance-content');
+                const isCollapsed = content.classList.contains('collapsed');
+                content.classList.toggle('collapsed', !isCollapsed);
+                this.innerHTML = isCollapsed ? 
+                    '<i class="fas fa-chevron-up"></i> Hide' : 
+                    '<i class="fas fa-chevron-down"></i> Show';
             });
             
-            // ===== EXISTING FILTER LOGIC (PRESERVED) =====
-            document.querySelectorAll('.apply-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    console.log('Apply filter clicked - existing logic preserved');
-                });
-            });
+            // Initial render
+            renderStackedBarChart('agent-chart-container', DashboardData.agent.hourlyData);
+            renderStackedBarChart('team-chart-container', DashboardData.team.hourlyData);
+            renderTop3Agents('top3-container', DashboardData.team.topAgents);
             
-            document.querySelectorAll('.reset-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    console.log('Reset filter clicked - existing logic preserved');
-                });
-            });
-            
-            // Initialize with default views
-            resetViewToggles('agent-performance');
+            // Set initial active state
+            switchPanel('agent');
         });
-        
-        // ===== HELPER FUNCTIONS =====
-        function resetViewToggles(panelId) {
-            if (panelId === 'agent-performance') {
-                // Reset to Hourly Performance view
-                document.querySelectorAll('#agent-performance .view-toggle').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                const hourlyBtn = document.querySelector('#agent-performance .view-toggle[data-view="hourly"]');
-                if (hourlyBtn) hourlyBtn.classList.add('active');
-                
-                document.getElementById('agent-hourly-view').classList.add('active');
-                document.getElementById('agent-submissions-view').classList.remove('active');
-            } else if (panelId === 'team-performance') {
-                // Reset to Team Hourly view
-                document.querySelectorAll('#team-performance .view-toggle').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                const hourlyBtn = document.querySelector('#team-performance .view-toggle[data-view="hourly"]');
-                if (hourlyBtn) hourlyBtn.classList.add('active');
-                
-                document.getElementById('team-hourly-view').classList.add('active');
-                document.getElementById('team-live-view').classList.remove('active');
-                document.getElementById('team-did-view').classList.remove('active');
-            }
-        }
-        
-        function updateKPICardsForCampaign(campaign) {
-            // This simulates the existing campaign button behavior
-            // Only updates KPI cards, not tables or charts
-            
-            console.log('Campaign selected:', campaign, '- Updating KPI cards only');
-            
-            // Example: Update KPI values based on campaign
-            // In real implementation, this would fetch new data for the selected campaign
-            const kpiValues = {
-                'all': { submissions: 85, qualified: 32, notQualified: 28, momentum: '+8%' },
-                'auto': { submissions: 35, qualified: 14, notQualified: 12, momentum: '+5%' },
-                'mva': { submissions: 30, qualified: 11, notQualified: 10, momentum: '+12%' },
-                'medicare': { submissions: 20, qualified: 7, notQualified: 6, momentum: '-2%' },
-                'live-traffic': { submissions: 85, qualified: 32, notQualified: 28, momentum: '+8%' }
-            };
-            
-            const values = kpiValues[campaign] || kpiValues.all;
-            
-            // Update team KPI cards (agent panel would have different logic)
-            const teamKPIs = document.querySelectorAll('#team-performance .kpi-value');
-            if (teamKPIs.length >= 4) {
-                teamKPIs[0].textContent = values.submissions;
-                teamKPIs[1].textContent = values.qualified;
-                teamKPIs[2].textContent = values.notQualified;
-                teamKPIs[3].textContent = values.momentum;
-            }
-        }
-        
-        // ===== SIMULATE DATA UPDATES =====
-        // This simulates real-time data updates
-        setInterval(() => {
-            // In real implementation, this would fetch fresh data
-            // For now, just update timestamps
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            // Update any "last updated" indicators
-            const updateIndicators = document.querySelectorAll('.last-updated');
-            updateIndicators.forEach(indicator => {
-                indicator.textContent = timeString;
-            });
-        }, 60000); // Every minute
     </script>
 </body>
 </html>
