@@ -1,198 +1,1497 @@
-import { useEffect, useState } from "react";
-
-/* ================= CONFIG ================= */
-
-const BASE_URL =
-  "https://performance-dashboard-c7017-default-rtdb.firebaseio.com/dashboard";
-
-/* ================= DATA HOOK ================= */
-
-function useRealtimeData() {
-  const [live, setLive] = useState(null);
-  const [raw, setRaw] = useState(null);
-
-  useEffect(() => {
-    async function load() {
-      const liveRes = await fetch(`${BASE_URL}/live.json`);
-      const rawRes = await fetch(`${BASE_URL}/raw.json`);
-      setLive(await liveRes.json());
-      setRaw(await rawRes.json());
-    }
-
-    load();
-    const id = setInterval(load, 30000);
-    return () => clearInterval(id);
-  }, []);
-
-  return { live, raw };
-}
-
-/* ================= UI COMPONENTS ================= */
-
-function StatCard({ title, value, sub }) {
-  return (
-    <div className="bg-white rounded-xl p-4 shadow-sm">
-      <div className="text-sm text-gray-500">{title}</div>
-      <div className="text-2xl font-semibold mt-1">{value}</div>
-      {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky Dreamers • Realtime Performance Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 80px;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .sidebar:hover {
+            width: 220px;
+        }
+        
+        .sidebar-item {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .sidebar-item.active {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        /* Gradient classes */
+        .gradient-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        
+        .gradient-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .gradient-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .gradient-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .gradient-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+        
+        .gradient-orange {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+        }
+        
+        /* Table scroll container */
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .table-container thead th {
+            position: sticky;
+            top: 0;
+            background: #f9fafb;
+            z-index: 10;
+        }
+        
+        .table-container tfoot tr {
+            position: sticky;
+            bottom: 0;
+            background: #3b82f6;
+            color: white;
+            z-index: 10;
+        }
+        
+        /* Smooth hover effects */
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
+        }
+        
+        /* Hourly chart */
+        .hourly-bar {
+            transition: all 0.3s ease;
+        }
+        
+        .hourly-bar:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Panel visibility */
+        .panel {
+            display: none;
+        }
+        
+        .panel.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex">
+    <!-- Fixed Sidebar -->
+    <div class="sidebar bg-white shadow-lg fixed left-0 top-0 h-full z-40">
+        <div class="p-4 border-b border-gray-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-xl text-white"></i>
+                </div>
+                <div class="whitespace-nowrap">
+                    <h1 class="text-sm font-bold text-gray-800">Sky Dreamers</h1>
+                    <p class="text-xs text-gray-500">Dashboard</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4 space-y-2">
+            <a href="#" onclick="switchPanel('agent')" 
+               class="sidebar-item flex items-center space-x-3 p-3 rounded-lg cursor-pointer" 
+               id="sidebar-agent">
+                <div class="w-6 h-6 flex items-center justify-center">
+                    <i class="fas fa-user text-gray-600"></i>
+                </div>
+                <span class="whitespace-nowrap font-medium text-gray-700">Agent Panel</span>
+            </a>
+            
+            <a href="#" onclick="switchPanel('team')" 
+               class="sidebar-item flex items-center space-x-3 p-3 rounded-lg cursor-pointer" 
+               id="sidebar-team">
+                <div class="w-6 h-6 flex items-center justify-center">
+                    <i class="fas fa-users text-gray-600"></i>
+                </div>
+                <span class="whitespace-nowrap font-medium text-gray-700">Team Panel</span>
+            </a>
+        </div>
+        
+        <div class="absolute bottom-0 w-full p-4 border-t border-gray-100">
+            <div class="text-xs text-gray-500 text-center">
+                <div id="lastUpdateSidebar" class="font-medium text-gray-700">--:--</div>
+                <div>Last Update</div>
+            </div>
+        </div>
     </div>
-  );
-}
 
-function SubmissionsTable({ rows }) {
-  return (
-    <table className="w-full text-sm">
-      <thead className="text-left text-gray-500 border-b">
-        <tr>
-          <th className="py-2">Time (PKT)</th>
-          <th>Agent</th>
-          <th>DID</th>
-          <th>State</th>
-          <th>Campaign</th>
-          <th>Disposition</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows?.map((r, i) => (
-          <tr key={i} className="border-b last:border-0">
-            <td className="py-2">{r.timestampPKT}</td>
-            <td>{r.agent || "-"}</td>
-            <td>{r.did || "-"}</td>
-            <td>{r.state || "-"}</td>
-            <td>{r.campaign}</td>
-            <td>{r.disposition || "Pending"}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
+    <!-- Main Content Area -->
+    <div class="flex-1 ml-20">
+        <!-- Agent Panel -->
+        <div id="agent-panel" class="panel">
+            <!-- Agent Panel Header -->
+            <header class="gradient-primary text-white shadow-md">
+                <div class="container mx-auto px-6 py-4">
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-user-chart text-2xl"></i>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold">Agent Performance Dashboard</h1>
+                                <p class="text-blue-100 text-sm">Personal metrics and submission tracking</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 md:mt-0">
+                            <div class="flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-lg">
+                                <i class="fas fa-clock text-blue-200"></i>
+                                <div>
+                                    <div class="text-xs text-blue-100">Agent Status</div>
+                                    <div class="font-semibold text-white" id="agent-status">Active</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-function CampaignTable({ data }) {
-  if (!data) return null;
+            <!-- Main Container for Agent Panel -->
+            <main class="container mx-auto px-6 py-6 max-w-7xl">
+                <!-- KPI Cards -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-tachometer-alt mr-2 text-blue-500"></i>Agent Performance Metrics
+                    </h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <!-- Agent Submissions -->
+                        <div class="gradient-primary text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-blue-100 text-sm font-medium mb-1">My Submissions</p>
+                                    <h3 id="agent-submissions" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-file-alt text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-bolt text-yellow-300 mr-1"></i>
+                                    <span id="agent-fph" class="font-semibold">0.00</span>
+                                    <span class="text-blue-100 ml-1">FPH</span>
+                                </div>
+                            </div>
+                        </div>
 
-  return (
-    <table className="w-full text-sm">
-      <thead className="text-left text-gray-500 border-b">
-        <tr>
-          <th className="py-2">Campaign</th>
-          <th>Subs</th>
-          <th>Qualified</th>
-          <th>FPH</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Object.entries(data).map(([name, c]) => (
-          <tr key={name} className="border-b last:border-0">
-            <td className="py-2">{name}</td>
-            <td>{c.submissions}</td>
-            <td>{c.qualified}</td>
-            <td>{c.fph}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
+                        <!-- Agent Qualified -->
+                        <div class="gradient-success text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-emerald-100 text-sm font-medium mb-1">My Qualified</p>
+                                    <h3 id="agent-qualified" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-check-circle text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-bolt text-yellow-300 mr-1"></i>
+                                    <span id="agent-sph" class="font-semibold">0.00</span>
+                                    <span class="text-emerald-100 ml-1">SPH</span>
+                                </div>
+                            </div>
+                        </div>
 
-function SystemHealth({ meta }) {
-  if (!meta) return null;
+                        <!-- Agent Not Qualified -->
+                        <div class="gradient-danger text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-red-100 text-sm font-medium mb-1">My Not Qualified</p>
+                                    <h3 id="agent-not-qualified" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-times-circle text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="text-red-100 text-xs">Quality Control</div>
+                            </div>
+                        </div>
 
-  return (
-    <div className="bg-white rounded-xl p-4 shadow-sm">
-      <div className="font-medium mb-2">System Health</div>
-      <div className="text-sm text-gray-600 space-y-1">
-        <div>Elapsed Hours: {meta.elapsedHours}</div>
-        <div>Total Agents: {meta.totalAgents}</div>
-        <div>Total Submissions: {meta.totalSubmissions}</div>
-        <div>Shift Progress: {Math.round(meta.shiftProgress * 100)}%</div>
-      </div>
+                        <!-- Agent Pending -->
+                        <div class="gradient-warning text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-amber-100 text-sm font-medium mb-1">My Pending</p>
+                                    <h3 id="agent-pending" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-clock text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="text-amber-100 text-xs">Awaiting Review</div>
+                            </div>
+                        </div>
+
+                        <!-- Agent Avg Talk Time -->
+                        <div class="gradient-purple text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-purple-100 text-sm font-medium mb-1">My Avg Talk Time</p>
+                                    <h3 id="agent-avgTalkTime" class="text-2xl font-bold">0:00</h3>
+                                </div>
+                                <i class="fas fa-phone-alt text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="text-purple-100 text-xs">Efficiency Metric</div>
+                            </div>
+                        </div>
+
+                        <!-- Agent Callback -->
+                        <div class="gradient-orange text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-orange-100 text-sm font-medium mb-1">My Call Back</p>
+                                    <h3 id="agent-callback" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-redo text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="text-orange-100 text-xs">Follow-up Required</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hourly Performance Section -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-chart-line mr-2 text-green-500"></i>Hourly Performance
+                    </h2>
+                    <div class="bg-white rounded-xl shadow p-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="text-sm text-gray-600">
+                                <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                                Submissions distribution by hour (color-coded by disposition)
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                Last 8 hours
+                            </div>
+                        </div>
+                        <div id="hourly-chart" class="h-48 flex items-end space-x-2">
+                            <!-- Hourly bars will be inserted here by JavaScript -->
+                            <div class="flex-1 text-center">
+                                <div class="text-xs text-gray-500 mb-1">No data</div>
+                                <div class="bg-gray-200 rounded-t-lg h-4"></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-3">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-green-500 rounded mr-2"></div>
+                                <span class="text-xs text-gray-600">Qualified</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-red-500 rounded mr-2"></div>
+                                <span class="text-xs text-gray-600">Not Qualified</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-yellow-500 rounded mr-2"></div>
+                                <span class="text-xs text-gray-600">Pending</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-blue-500 rounded mr-2"></div>
+                                <span class="text-xs text-gray-600">Call Back</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Submissions Table -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-list-alt mr-2 text-purple-500"></i>My Submissions
+                    </h2>
+                    <div class="bg-white rounded-xl shadow p-4">
+                        <!-- Filters -->
+                        <div class="flex flex-wrap gap-3 mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-medium text-gray-700">Filters:</span>
+                            </div>
+                            <select id="filter-campaign" class="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-sm">
+                                <option value="All">All Campaigns</option>
+                                <option value="Auto">Auto</option>
+                                <option value="MVA">MVA</option>
+                                <option value="Medicare">Medicare</option>
+                            </select>
+                            <select id="filter-did" class="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-sm">
+                                <option value="All">All DIDs</option>
+                                <!-- DIDs will be populated by JavaScript -->
+                            </select>
+                            <select id="filter-disposition" class="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-sm">
+                                <option value="All">All Dispositions</option>
+                                <option value="Qualified">Qualified</option>
+                                <option value="Not Qualified">Not Qualified</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Call Back">Call Back</option>
+                            </select>
+                            <button onclick="applyAgentFilters()" class="px-4 py-1.5 gradient-primary text-white rounded-lg text-sm font-medium hover:shadow transition-all duration-300">
+                                <i class="fas fa-filter mr-1"></i>Apply
+                            </button>
+                            <button onclick="resetAgentFilters()" class="px-4 py-1.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all duration-300">
+                                <i class="fas fa-redo mr-1"></i>Reset
+                            </button>
+                        </div>
+                        
+                        <!-- Table -->
+                        <div class="table-container border border-gray-200 rounded-lg">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr class="text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        <th class="py-3 px-4">Timestamp</th>
+                                        <th class="py-3 px-4">Campaign</th>
+                                        <th class="py-3 px-4">DID</th>
+                                        <th class="py-3 px-4">State</th>
+                                        <th class="py-3 px-4">Duration</th>
+                                        <th class="py-3 px-4">Disposition</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="agent-submissions-body" class="divide-y divide-gray-100">
+                                    <tr>
+                                        <td colspan="6" class="py-8 text-center text-gray-500">
+                                            <i class="fas fa-database text-2xl mb-2 text-gray-300"></i><br>
+                                            Loading your submissions...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Team Panel (Existing Dashboard) -->
+        <div id="team-panel" class="panel active">
+            <!-- Original Header -->
+            <header class="gradient-primary text-white shadow-md">
+                <div class="container mx-auto px-4 py-3">
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-xl"></i>
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-bold">Sky Dreamers</h1>
+                                <p class="text-blue-100 text-sm">Realtime Performance Dashboard</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2 md:mt-0">
+                            <div class="flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-lg">
+                                <i class="fas fa-clock text-blue-200"></i>
+                                <div>
+                                    <div class="text-xs text-blue-100">Last Submission</div>
+                                    <div id="lastSubmissionTime" class="font-semibold text-white">Loading...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Original Main Content -->
+            <main class="container mx-auto px-4 py-6 max-w-7xl">
+                <!-- Campaign Filters -->
+                <div class="mb-6">
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <button onclick="setFilter('All')" class="campaign-btn active bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:shadow-lg transition-all duration-300 text-sm">
+                            <i class="fas fa-globe-americas mr-1"></i>All Campaigns
+                        </button>
+                        <button onclick="setFilter('Auto')" class="campaign-btn bg-white text-gray-700 border border-blue-200 px-4 py-2 rounded-lg font-medium shadow hover:shadow-md transition-all duration-300 text-sm hover:border-blue-400">
+                            <i class="fas fa-car mr-1"></i>Auto
+                        </button>
+                        <button onclick="setFilter('MVA')" class="campaign-btn bg-white text-gray-700 border border-blue-200 px-4 py-2 rounded-lg font-medium shadow hover:shadow-md transition-all duration-300 text-sm hover:border-blue-400">
+                            <i class="fas fa-ambulance mr-1"></i>MVA
+                        </button>
+                        <button onclick="setFilter('Medicare')" class="campaign-btn bg-white text-gray-700 border border-blue-200 px-4 py-2 rounded-lg font-medium shadow hover:shadow-md transition-all duration-300 text-sm hover:border-blue-400">
+                            <i class="fas fa-heartbeat mr-1"></i>Medicare
+                        </button>
+                        <button onclick="openTrafficModal()" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:shadow-lg transition-all duration-300 text-sm">
+                            <i class="fas fa-traffic-light mr-1"></i>Live Traffic
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Metrics Dashboard -->
+                <div class="mb-8">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <!-- Submissions -->
+                        <div class="gradient-primary text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-blue-100 text-sm font-medium mb-1">Submissions</p>
+                                    <h3 id="submissions" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-file-alt text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-bolt text-yellow-300 mr-1"></i>
+                                    <span id="fph" class="font-semibold">0.00</span>
+                                    <span class="text-blue-100 ml-1">FPH</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Qualified -->
+                        <div class="gradient-success text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-emerald-100 text-sm font-medium mb-1">Qualified</p>
+                                    <h3 id="qualified" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-check-circle text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-bolt text-yellow-300 mr-1"></i>
+                                    <span id="sph" class="font-semibold">0.00</span>
+                                    <span class="text-emerald-100 ml-1">SPH</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Not Qualified -->
+                        <div class="gradient-danger text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-red-100 text-sm font-medium mb-1">Not Qualified</p>
+                                    <h3 id="notQualified" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-times-circle text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="text-red-100 text-xs">Quality Control</div>
+                            </div>
+                        </div>
+
+                        <!-- Pending -->
+                        <div class="gradient-warning text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-amber-100 text-sm font-medium mb-1">Pending</p>
+                                    <h3 id="pending" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-clock text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="text-amber-100 text-xs">Awaiting Review</div>
+                            </div>
+                        </div>
+
+                        <!-- Avg Talk Time -->
+                        <div class="gradient-purple text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-purple-100 text-sm font-medium mb-1">Avg Talk Time</p>
+                                    <h3 id="avgTalkTime" class="text-2xl font-bold">0:00</h3>
+                                </div>
+                                <i class="fas fa-phone-alt text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="text-purple-100 text-xs">Efficiency Metric</div>
+                            </div>
+                        </div>
+
+                        <!-- Callback -->
+                        <div class="gradient-orange text-white rounded-xl p-4 shadow hover:shadow-lg transition-all duration-300 hover-lift">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-orange-100 text-sm font-medium mb-1">Call Back</p>
+                                    <h3 id="callback" class="text-2xl font-bold">0</h3>
+                                </div>
+                                <i class="fas fa-redo text-xl text-white/70"></i>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-white/20">
+                                <div class="text-orange-100 text-xs">Follow-up Required</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Panel - 2/3 width -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-xl shadow p-4">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                                <h2 id="mainTableTitle" class="text-lg font-bold text-gray-800 flex items-center">
+                                    <i class="fas fa-database mr-2 text-blue-500"></i>Live Submissions
+                                </h2>
+                                
+                                <div class="flex flex-wrap gap-2">
+                                    <div class="text-sm text-gray-500 font-medium">View:</div>
+                                    <div class="flex gap-1">
+                                        <button onclick="setTableView('submissions')" class="view-btn active bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded text-xs font-medium">
+                                            Live Submissions
+                                        </button>
+                                        <button onclick="setTableView('dids')" class="view-btn bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1 rounded text-xs font-medium">
+                                            DID Stats
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Live Submissions Table -->
+                            <div id="submissionsTable" class="table-view">
+                                <div class="table-container border border-gray-200 rounded-lg">
+                                    <table class="min-w-full">
+                                        <thead class="bg-gray-50">
+                                            <tr class="text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th class="py-3 px-4">Timestamp</th>
+                                                <th class="py-3 px-4">Closer Name</th>
+                                                <th class="py-3 px-4">DID</th>
+                                                <th class="py-3 px-4">State</th>
+                                                <th class="py-3 px-4">Campaign</th>
+                                                <th class="py-3 px-4">Duration</th>
+                                                <th class="py-3 px-4">Disposition</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="liveSubmissionsBody" class="divide-y divide-gray-100">
+                                            <tr>
+                                                <td colspan="7" class="py-8 text-center text-gray-500">
+                                                    <i class="fas fa-database text-2xl mb-2 text-gray-300"></i><br>
+                                                    Loading live submissions...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- DID Stats Table (Hidden by default) -->
+                            <div id="didsTable" class="table-view hidden">
+                                <div class="table-container border border-gray-200 rounded-lg">
+                                    <table class="min-w-full">
+                                        <thead class="bg-gray-50">
+                                            <tr class="text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th class="py-3 px-4">DID</th>
+                                                <th class="py-3 px-4">Campaign</th>
+                                                <th class="py-3 px-4">Subs</th>
+                                                <th class="py-3 px-4">Qualified</th>
+                                                <th class="py-3 px-4">Not Qual</th>
+                                                <th class="py-3 px-4">FPH</th>
+                                                <th class="py-3 px-4">SPH</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="didsBody" class="divide-y divide-gray-100">
+                                            <tr>
+                                                <td colspan="7" class="py-8 text-center text-gray-500">
+                                                    <i class="fas fa-phone text-2xl mb-2 text-gray-300"></i><br>
+                                                    Loading DID statistics...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot id="didsTotal" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold">
+                                            <!-- Totals row will be inserted here -->
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel - 1/3 width -->
+                    <div class="space-y-6">
+                        <!-- Campaign Performance -->
+                        <div class="bg-white rounded-xl shadow p-4">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-chart-bar mr-2 text-green-500"></i>Campaign Performance
+                            </h2>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr class="text-left text-xs font-semibold text-gray-700 uppercase">
+                                            <th class="py-2 px-3">Campaign</th>
+                                            <th class="py-2 px-3">Subs</th>
+                                            <th class="py-2 px-3">Qual</th>
+                                            <th class="py-2 px-3">FPH</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="campaignsBody" class="divide-y divide-gray-100">
+                                        <!-- Data will be inserted here -->
+                                    </tbody>
+                                    <tfoot id="campaignsTotal" class="bg-gradient-to-r from-green-500 to-green-600 text-white font-bold">
+                                        <!-- Totals row will be inserted here -->
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Top States -->
+                        <div class="bg-white rounded-xl shadow p-4">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-map-marker-alt mr-2 text-red-500"></i>Top States
+                            </h2>
+                            
+                            <div class="grid grid-cols-2 gap-3" id="topStatesBody">
+                                <!-- State badges will be inserted here -->
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <button onclick="openTrafficModal()" class="w-full py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-medium hover:shadow transition-all duration-300 text-sm">
+                                    <i class="fas fa-expand mr-1"></i>View All States
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Live Traffic Modal (Shared between panels) -->
+        <div id="trafficModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                <div class="gradient-primary text-white p-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-traffic-light mr-2"></i>Live Traffic Analysis
+                        </h2>
+                        <p class="text-blue-100 text-sm">Real-time state volume distribution</p>
+                    </div>
+                    <button onclick="closeTrafficModal()" class="text-white hover:text-gray-200 text-xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="statesBody">
+                        <!-- State cards will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compact Footer -->
+        <footer class="mt-8 bg-gray-800 text-white py-4">
+            <div class="container mx-auto px-4 text-center">
+                <div class="text-sm text-gray-400">
+                    © 2025 Sky Dreamers • Realtime Performance Dashboard
+                </div>
+            </div>
+        </footer>
     </div>
-  );
-}
 
-/* ================= PANELS ================= */
+    <script>
+        // Initialize Firebase
+        firebase.initializeApp({
+            databaseURL: "https://performance-dashboard-c7017-default-rtdb.firebaseio.com"
+        });
 
-function AgentPanel({ live, raw }) {
-  const s = live?.summary || {};
+        let dashboardData = null;
+        let rawSubmissionsData = null;
+        let currentFilter = 'All';
+        let currentView = 'submissions';
+        let currentPanel = 'team'; // Default to Team Panel
+        let currentAgent = 'Agent 1'; // In a real app, this would come from authentication
 
-  return (
-    <>
-      <h2 className="text-lg font-semibold mb-3">Agent Panel</h2>
+        // Formatting helpers
+        function formatPKTTime(isoString) {
+            if (!isoString) return 'N/A';
+            try {
+                const date = new Date(isoString);
+                if (isNaN(date.getTime())) return 'N/A';
+                
+                const pktDate = new Date(date.getTime() - (8 * 60 * 60 * 1000));
+                
+                const month = pktDate.toLocaleString('en-US', { month: 'short' });
+                const day = pktDate.getDate();
+                let hour = pktDate.getHours();
+                const minute = pktDate.getMinutes().toString().padStart(2, '0');
+                
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                hour = hour % 12;
+                hour = hour ? hour : 12;
+                
+                return `${month} ${day}, ${hour}:${minute} ${ampm}`;
+            } catch (e) {
+                console.error("Error formatting time:", e, isoString);
+                return 'N/A';
+            }
+        }
 
-      <div className="grid grid-cols-5 gap-4 mb-6">
-        <StatCard title="Submissions" value={s.submissions || 0} sub={`${s.fph || 0} FPH`} />
-        <StatCard title="Qualified" value={s.qualified || 0} sub={`${s.sph || 0} SPH`} />
-        <StatCard title="Not Qualified" value={s.notQualified || 0} />
-        <StatCard title="Pending" value={s.pending || 0} />
-        <StatCard title="Callback" value={s.callback || 0} />
-      </div>
+        function formatLastSubmissionTime(isoString) {
+            if (!isoString) return 'No data yet';
+            try {
+                const date = new Date(isoString);
+                if (isNaN(date.getTime())) return 'No data yet';
+                
+                const pktDate = new Date(date.getTime() - (8 * 60 * 60 * 1000));
+                
+                const month = pktDate.toLocaleString('en-US', { month: 'short' });
+                const day = pktDate.getDate();
+                let hour = pktDate.getHours();
+                const minute = pktDate.getMinutes().toString().padStart(2, '0');
+                
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                hour = hour % 12;
+                hour = hour ? hour : 12;
+                
+                return `${month} ${day}, ${hour}:${minute} ${ampm}`;
+            } catch (e) {
+                console.error("Error formatting last submission:", e);
+                return 'No data yet';
+            }
+        }
 
-      <div className="bg-white rounded-xl p-4 shadow-sm">
-        <div className="font-medium mb-2">Live Submissions</div>
-        <SubmissionsTable rows={raw?.submissions} />
-      </div>
-    </>
-  );
-}
+        function formatDuration(seconds) {
+            if (!seconds || seconds === 0) return "0:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
 
-/* Team Panel = SAME AS AGENT (INTENTIONAL V1) */
-function TeamPanel(props) {
-  return (
-    <>
-      <h2 className="text-lg font-semibold mb-3">Team Performance</h2>
-      <AgentPanel {...props} />
-    </>
-  );
-}
+        // Panel switching
+        function switchPanel(panel) {
+            currentPanel = panel;
+            
+            // Hide all panels
+            document.querySelectorAll('.panel').forEach(p => {
+                p.classList.remove('active');
+            });
+            
+            // Show selected panel
+            document.getElementById(panel + '-panel').classList.add('active');
+            
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                item.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white');
+                item.classList.add('text-gray-700');
+            });
+            
+            const activeItem = document.getElementById('sidebar-' + panel);
+            activeItem.classList.add('active');
+            activeItem.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white');
+            activeItem.classList.remove('text-gray-700');
+            
+            // Update last update time in sidebar
+            updateSidebarTime();
+        }
 
-function TeamLeadPanel({ live }) {
-  return (
-    <>
-      <h2 className="text-lg font-semibold mb-3">Team Lead View</h2>
-      <div className="bg-white rounded-xl p-4 shadow-sm">
-        <CampaignTable data={live?.campaign} />
-      </div>
-    </>
-  );
-}
+        function updateSidebarTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastUpdateSidebar').textContent = timeString;
+        }
 
-function QualityPanel({ raw }) {
-  return (
-    <>
-      <h2 className="text-lg font-semibold mb-3">Quality Control</h2>
-      <div className="bg-white rounded-xl p-4 shadow-sm">
-        <SubmissionsTable rows={raw?.submissions} />
-      </div>
-    </>
-  );
-}
+        // Filter management
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // Update active button
+            document.querySelectorAll('.campaign-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-700', 'border', 'border-blue-200');
+            });
+            
+            event.currentTarget.classList.remove('bg-white', 'text-gray-700', 'border', 'border-blue-200');
+            event.currentTarget.classList.add('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white');
+            
+            if (dashboardData) {
+                renderTeamData();
+            }
+        }
 
-function AdminPanel({ live }) {
-  return (
-    <>
-      <h2 className="text-lg font-semibold mb-3">Admin Panel</h2>
-      <SystemHealth meta={live?.meta} />
-    </>
-  );
-}
+        // Table view management
+        function setTableView(view) {
+            currentView = view;
+            
+            // Hide all table views
+            document.querySelectorAll('.table-view').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Show selected view
+            document.getElementById(`${view}Table`).classList.remove('hidden');
+            
+            // Update active button
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-700', 'border', 'border-gray-300');
+            });
+            
+            event.currentTarget.classList.remove('bg-gray-100', 'text-gray-700', 'border', 'border-gray-300');
+            event.currentTarget.classList.add('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white');
+            
+            // Update title
+            const titles = {
+                'submissions': 'Live Submissions',
+                'dids': 'DID Performance Stats'
+            };
+            document.getElementById('mainTableTitle').innerHTML = `
+                <i class="fas fa-${view === 'submissions' ? 'database' : 'phone'} mr-2 text-blue-500"></i>
+                ${titles[view]}
+            `;
+            
+            // Render the selected view
+            if (dashboardData) {
+                switch(view) {
+                    case 'dids':
+                        renderDIDs();
+                        break;
+                    case 'submissions':
+                        renderLiveSubmissions();
+                        break;
+                }
+            }
+        }
 
-/* ================= ROOT ================= */
+        // Process Firebase data
+        function processFirebaseData(data) {
+            console.log("Processing dashboard data:", data);
+            
+            return {
+                agents: data.agent || {},
+                campaigns: data.campaign || {},
+                dids: data.dids || {},
+                states: data.states || {},
+                summary: data.summary || {},
+                lastSubmission: data.lastSubmission,
+                lastUpdated: data.lastUpdated,
+                meta: data.meta || {}
+            };
+        }
 
-export default function App() {
-  const { live, raw } = useRealtimeData();
+        // Calculate filtered summary
+        function calculateFilteredSummary(data, filter) {
+            if (filter === 'All') {
+                return data.summary || {};
+            }
+            
+            const campaign = data.campaigns[filter];
+            if (campaign) {
+                return {
+                    submissions: campaign.submissions || 0,
+                    qualified: campaign.qualified || 0,
+                    notQualified: campaign.notQualified || 0,
+                    pending: campaign.pending || 0,
+                    callback: campaign.callback || 0,
+                    fph: campaign.fph || 0,
+                    sph: campaign.sph || 0,
+                    avgTalkTime: campaign.avgTalkTime || 0
+                };
+            }
+            
+            return {
+                submissions: 0,
+                qualified: 0,
+                notQualified: 0,
+                pending: 0,
+                callback: 0,
+                fph: 0,
+                sph: 0,
+                avgTalkTime: 0
+            };
+        }
 
-  if (!live) {
-    return <div className="p-6">Loading realtime dashboard…</div>;
-  }
+        // Filter agents by campaign
+        function filterAgentsByCampaign(agents, campaignName) {
+            if (campaignName === 'All') return agents;
+            
+            const filtered = {};
+            Object.keys(agents).forEach(agentName => {
+                const agent = agents[agentName];
+                if (agent.campaigns && agent.campaigns.includes(campaignName)) {
+                    filtered[agentName] = agent;
+                }
+            });
+            
+            return filtered;
+        }
 
-  return (
-    <div className="p-6 bg-gray-100 min-h-screen space-y-12">
-      <AgentPanel live={live} raw={raw} />
-      <TeamPanel live={live} raw={raw} />
-      <TeamLeadPanel live={live} />
-      <QualityPanel raw={raw} />
-      <AdminPanel live={live} />
-    </div>
-  );
-}
+        // ========== AGENT PANEL FUNCTIONS ==========
+        
+        function updateAgentMetrics() {
+            if (!dashboardData || !dashboardData.agents) return;
+            
+            const agent = dashboardData.agents[currentAgent];
+            if (!agent) {
+                // If current agent not found, use first available agent
+                const firstAgent = Object.keys(dashboardData.agents)[0];
+                if (firstAgent) {
+                    currentAgent = firstAgent;
+                    updateAgentMetrics();
+                }
+                return;
+            }
+            
+            // Update agent KPI cards
+            document.getElementById('agent-submissions').textContent = agent.submissions || 0;
+            document.getElementById('agent-qualified').textContent = agent.qualified || 0;
+            document.getElementById('agent-not-qualified').textContent = agent.notQualified || 0;
+            document.getElementById('agent-pending').textContent = agent.pending || 0;
+            document.getElementById('agent-callback').textContent = agent.callback || 0;
+            document.getElementById('agent-fph').textContent = (agent.fph || 0).toFixed(2);
+            document.getElementById('agent-sph').textContent = (agent.sph || 0).toFixed(2);
+            document.getElementById('agent-avgTalkTime').textContent = formatDuration(agent.avgTalkTime || 0);
+            
+            // Update agent status in header
+            const statusElement = document.getElementById('agent-status');
+            if (agent.submissions > 0) {
+                statusElement.textContent = 'Active • ' + agent.submissions + ' submissions';
+            } else {
+                statusElement.textContent = 'Ready';
+            }
+            
+            // Update agent name in sidebar if needed
+            const sidebarAgentItem = document.querySelector('#sidebar-agent span');
+            if (sidebarAgentItem) {
+                sidebarAgentItem.textContent = `${currentAgent}'s Panel`;
+            }
+            
+            // Render hourly chart
+            renderHourlyChart();
+            
+            // Render agent submissions
+            renderAgentSubmissions();
+            
+            // Update DID filter options
+            updateDIDFilter();
+        }
+        
+        function renderHourlyChart() {
+            const chartContainer = document.getElementById('hourly-chart');
+            chartContainer.innerHTML = '';
+            
+            // Simulate hourly data for the last 8 hours
+            const hours = [];
+            const now = new Date();
+            for (let i = 7; i >= 0; i--) {
+                const hour = new Date(now.getTime() - (i * 60 * 60 * 1000));
+                hours.push({
+                    hour: hour.getHours(),
+                    label: hour.getHours() + ':00',
+                    qualified: Math.floor(Math.random() * 5),
+                    notQualified: Math.floor(Math.random() * 3),
+                    pending: Math.floor(Math.random() * 4),
+                    callback: Math.floor(Math.random() * 2)
+                });
+            }
+            
+            // Find max total for scaling
+            const maxTotal = Math.max(...hours.map(h => 
+                h.qualified + h.notQualified + h.pending + h.callback
+            ));
+            
+            // Render bars
+            hours.forEach(hourData => {
+                const total = hourData.qualified + hourData.notQualified + hourData.pending + hourData.callback;
+                const heightPercent = maxTotal > 0 ? (total / maxTotal * 100) : 0;
+                
+                // Create stacked bar
+                let barHTML = `
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="text-xs text-gray-500 mb-1">${hourData.label}</div>
+                        <div class="relative w-3/4 h-40 bg-gray-100 rounded-t-lg overflow-hidden">
+                `;
+                
+                // Calculate segment heights
+                const segmentHeight = (value) => maxTotal > 0 ? (value / maxTotal * 100) + '%' : '0%';
+                
+                // Stack segments from bottom to top
+                if (hourData.callback > 0) {
+                    barHTML += `<div class="absolute bottom-0 w-full bg-blue-500" style="height: ${segmentHeight(hourData.callback)}"></div>`;
+                }
+                if (hourData.pending > 0) {
+                    const bottom = hourData.callback;
+                    barHTML += `<div class="absolute bottom-0 w-full bg-yellow-500" style="height: ${segmentHeight(hourData.pending)}; transform: translateY(${-segmentHeight(bottom)})"></div>`;
+                }
+                if (hourData.notQualified > 0) {
+                    const bottom = hourData.callback + hourData.pending;
+                    barHTML += `<div class="absolute bottom-0 w-full bg-red-500" style="height: ${segmentHeight(hourData.notQualified)}; transform: translateY(${-segmentHeight(bottom)})"></div>`;
+                }
+                if (hourData.qualified > 0) {
+                    const bottom = hourData.callback + hourData.pending + hourData.notQualified;
+                    barHTML += `<div class="absolute bottom-0 w-full bg-green-500" style="height: ${segmentHeight(hourData.qualified)}; transform: translateY(${-segmentHeight(bottom)})"></div>`;
+                }
+                
+                barHTML += `
+                        </div>
+                        <div class="text-xs font-medium text-gray-700 mt-1">${total}</div>
+                    </div>
+                `;
+                
+                chartContainer.innerHTML += barHTML;
+            });
+        }
+        
+        function renderAgentSubmissions() {
+            const tbody = document.getElementById('agent-submissions-body');
+            tbody.innerHTML = '';
+            
+            if (!rawSubmissionsData || !rawSubmissionsData.submissions) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-gray-500">
+                            <i class="fas fa-database text-2xl mb-2 text-gray-300"></i><br>
+                            Loading your submissions...
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Filter submissions for current agent
+            const agentSubmissions = rawSubmissionsData.submissions.filter(sub => 
+                sub.agent === currentAgent
+            );
+            
+            if (agentSubmissions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-gray-500">
+                            <i class="fas fa-user-slash text-2xl mb-2 text-gray-300"></i><br>
+                            No submissions found for ${currentAgent}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Apply filters
+            const campaignFilter = document.getElementById('filter-campaign').value;
+            const didFilter = document.getElementById('filter-did').value;
+            const dispositionFilter = document.getElementById('filter-disposition').value;
+            
+            const filteredSubmissions = agentSubmissions.filter(sub => {
+                const matchesCampaign = campaignFilter === 'All' || sub.campaign === campaignFilter;
+                const matchesDID = didFilter === 'All' || sub.did === didFilter;
+                const matchesDisposition = dispositionFilter === 'All' || sub.disposition === dispositionFilter;
+                return matchesCampaign && matchesDID && matchesDisposition;
+            });
+            
+            // Render filtered submissions
+            filteredSubmissions.forEach((sub, index) => {
+                const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                const timestamp = sub.timestamp ? formatPKTTime(sub.timestamp) : 'N/A';
+                
+                tbody.innerHTML += `
+                    <tr class="${rowClass} hover:bg-blue-50 transition-colors duration-150">
+                        <td class="py-3 px-4 text-xs">${timestamp}</td>
+                        <td class="py-3 px-4">${sub.campaign || 'Unknown'}</td>
+                        <td class="py-3 px-4 text-sm">${sub.did || 'N/A'}</td>
+                        <td class="py-3 px-4">${sub.state || 'N/A'}</td>
+                        <td class="py-3 px-4">${formatDuration(sub.duration || 0)}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded text-xs font-medium ${
+                                sub.disposition === 'Qualified' ? 'bg-green-100 text-green-800' :
+                                sub.disposition === 'Not Qualified' ? 'bg-red-100 text-red-800' :
+                                sub.disposition === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                                sub.disposition === 'Call Back' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                            }">
+                                ${sub.disposition || 'Unknown'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function updateDIDFilter() {
+            const didFilter = document.getElementById('filter-did');
+            didFilter.innerHTML = '<option value="All">All DIDs</option>';
+            
+            if (!rawSubmissionsData || !rawSubmissionsData.submissions) return;
+            
+            // Get unique DIDs for current agent
+            const agentSubmissions = rawSubmissionsData.submissions.filter(sub => 
+                sub.agent === currentAgent
+            );
+            
+            const uniqueDIDs = [...new Set(agentSubmissions
+                .map(sub => sub.did)
+                .filter(did => did && did !== 'N/A')
+            )];
+            
+            uniqueDIDs.forEach(did => {
+                const option = document.createElement('option');
+                option.value = did;
+                option.textContent = did;
+                didFilter.appendChild(option);
+            });
+        }
+        
+        function applyAgentFilters() {
+            renderAgentSubmissions();
+        }
+        
+        function resetAgentFilters() {
+            document.getElementById('filter-campaign').value = 'All';
+            document.getElementById('filter-did').value = 'All';
+            document.getElementById('filter-disposition').value = 'All';
+            renderAgentSubmissions();
+        }
+        
+        // ========== TEAM PANEL FUNCTIONS ==========
+        
+        function renderTeamData() {
+            if (!dashboardData) return;
+            
+            document.getElementById('lastSubmissionTime').textContent = 
+                formatLastSubmissionTime(dashboardData.lastSubmission);
+            
+            // Update team KPI cards with filtered data
+            const filteredSummary = calculateFilteredSummary(dashboardData, currentFilter);
+            
+            document.getElementById('submissions').textContent = filteredSummary.submissions || 0;
+            document.getElementById('qualified').textContent = filteredSummary.qualified || 0;
+            document.getElementById('notQualified').textContent = filteredSummary.notQualified || 0;
+            document.getElementById('pending').textContent = filteredSummary.pending || 0;
+            document.getElementById('callback').textContent = filteredSummary.callback || 0;
+            document.getElementById('fph').textContent = (filteredSummary.fph || 0).toFixed(2);
+            document.getElementById('sph').textContent = (filteredSummary.sph || 0).toFixed(2);
+            document.getElementById('avgTalkTime').textContent = formatDuration(filteredSummary.avgTalkTime || 0);
+            
+            // Render based on current view
+            switch(currentView) {
+                case 'dids':
+                    renderDIDs();
+                    break;
+                case 'submissions':
+                    renderLiveSubmissions();
+                    break;
+            }
+            
+            // Always render campaigns and states
+            renderCampaigns();
+            renderTopStates();
+        }
+        
+        function renderDIDs() {
+            const tbody = document.getElementById('didsBody');
+            const tfoot = document.getElementById('didsTotal');
+            tbody.innerHTML = '';
+            
+            if (!dashboardData.dids || Object.keys(dashboardData.dids).length === 0) {
+                tbody.innerHTML = `
+                    <tr class="bg-white">
+                        <td colspan="7" class="py-8 text-center text-gray-500">
+                            <i class="fas fa-phone text-2xl mb-2 text-gray-300"></i><br>
+                            No DID data available
+                        </td>
+                    </tr>
+                `;
+                tfoot.innerHTML = '';
+                return;
+            }
+            
+            // Sort DIDs by qualified
+            const sortedDIDs = Object.entries(dashboardData.dids)
+                .sort((a, b) => (b[1].qualified || 0) - (a[1].qualified || 0));
+            
+            sortedDIDs.forEach(([did, stats], index) => {
+                const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                
+                tbody.innerHTML += `
+                    <tr class="${rowClass} hover:bg-purple-50 transition-colors duration-150">
+                        <td class="py-3 px-4 font-medium">${did}</td>
+                        <td class="py-3 px-4">${stats.campaign || 'N/A'}</td>
+                        <td class="py-3 px-4">${stats.submissions || 0}</td>
+                        <td class="py-3 px-4 font-bold text-green-600">${stats.qualified || 0}</td>
+                        <td class="py-3 px-4 text-red-500">${stats.notQualified || 0}</td>
+                        <td class="py-3 px-4">${(stats.fph || 0).toFixed(2)}</td>
+                        <td class="py-3 px-4">${(stats.sph || 0).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            // Calculate totals
+            const totalSubmissions = sortedDIDs.reduce((sum, [_, stats]) => sum + (stats.submissions || 0), 0);
+            const totalQualified = sortedDIDs.reduce((sum, [_, stats]) => sum + (stats.qualified || 0), 0);
+            const totalNotQualified = sortedDIDs.reduce((sum, [_, stats]) => sum + (stats.notQualified || 0), 0);
+            
+            tfoot.innerHTML = `
+                <tr>
+                    <td class="py-3 px-4">TOTALS</td>
+                    <td class="py-3 px-4"></td>
+                    <td class="py-3 px-4">${totalSubmissions}</td>
+                    <td class="py-3 px-4">${totalQualified}</td>
+                    <td class="py-3 px-4">${totalNotQualified}</td>
+                    <td class="py-3 px-4"></td>
+                    <td class="py-3 px-4"></td>
+                </tr>
+            `;
+        }
+        
+        function renderLiveSubmissions() {
+            const tbody = document.getElementById('liveSubmissionsBody');
+            tbody.innerHTML = '';
+            
+            if (!rawSubmissionsData || !rawSubmissionsData.submissions || rawSubmissionsData.submissions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-gray-500">
+                            <i class="fas fa-database text-2xl mb-2 text-gray-300"></i><br>
+                            Loading live submissions...
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const submissions = rawSubmissionsData.submissions;
+            
+            submissions.forEach((sub, index) => {
+                const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                const timestamp = sub.timestamp ? formatPKTTime(sub.timestamp) : 'N/A';
+                
+                tbody.innerHTML += `
+                    <tr class="${rowClass} hover:bg-blue-50 transition-colors duration-150">
+                        <td class="py-3 px-4 text-xs">${timestamp}</td>
+                        <td class="py-3 px-4">${sub.agent || 'Unknown'}</td>
+                        <td class="py-3 px-4 text-sm">${sub.did || 'N/A'}</td>
+                        <td class="py-3 px-4">${sub.state || 'N/A'}</td>
+                        <td class="py-3 px-4">${sub.campaign || 'Unknown'}</td>
+                        <td class="py-3 px-4">${formatDuration(sub.duration || 0)}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded text-xs font-medium ${
+                                sub.disposition === 'Qualified' ? 'bg-green-100 text-green-800' :
+                                sub.disposition === 'Not Qualified' ? 'bg-red-100 text-red-800' :
+                                sub.disposition === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                                sub.disposition === 'Call Back' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                            }">
+                                ${sub.disposition || 'Unknown'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function renderCampaigns() {
+            const tbody = document.getElementById('campaignsBody');
+            const tfoot = document.getElementById('campaignsTotal');
+            tbody.innerHTML = '';
+            
+            if (!dashboardData.campaigns || Object.keys(dashboardData.campaigns).length === 0) {
+                tbody.innerHTML = `
+                    <tr class="bg-white">
+                        <td colspan="4" class="py-8 text-center text-gray-500">
+                            <i class="fas fa-chart-bar text-2xl mb-2 text-gray-300"></i><br>
+                            No campaign data available
+                        </td>
+                    </tr>
+                `;
+                tfoot.innerHTML = '';
+                return;
+            }
+            
+            Object.entries(dashboardData.campaigns).forEach(([name, stats], index) => {
+                tbody.innerHTML += `
+                    <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-green-50 transition-colors duration-150">
+                        <td class="py-2 px-3 font-medium">${name}</td>
+                        <td class="py-2 px-3">${stats.submissions || 0}</td>
+                        <td class="py-2 px-3 font-bold text-green-600">${stats.qualified || 0}</td>
+                        <td class="py-2 px-3">${(stats.fph || 0).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            const summary = dashboardData.summary || {};
+            tfoot.innerHTML = `
+                <tr>
+                    <td class="py-2 px-3">TOTALS</td>
+                    <td class="py-2 px-3">${summary.submissions || 0}</td>
+                    <td class="py-2 px-3">${summary.qualified || 0}</td>
+                    <td class="py-2 px-3">${(summary.fph || 0).toFixed(2)}</td>
+                </tr>
+            `;
+        }
+        
+        function renderTopStates() {
+            const container = document.getElementById('topStatesBody');
+            container.innerHTML = '';
+            
+            if (!dashboardData.states || Object.keys(dashboardData.states).length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 text-center py-4 text-gray-500">
+                        <i class="fas fa-map text-xl mb-1 text-gray-300"></i><br>
+                        <span class="text-sm">No state data</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            const sortedStates = Object.entries(dashboardData.states)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4);
+            
+            sortedStates.forEach(([state, volume]) => {
+                container.innerHTML += `
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-3 text-center shadow hover:shadow-md transition-shadow duration-300">
+                        <div class="text-xl font-bold mb-1">${volume}</div>
+                        <div class="text-xs font-medium">${state}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        function renderStates() {
+            const container = document.getElementById('statesBody');
+            container.innerHTML = '';
+            
+            if (!dashboardData.states || Object.keys(dashboardData.states).length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-3 text-center py-8 text-gray-500">
+                        <i class="fas fa-map-marked-alt text-2xl mb-2 text-gray-300"></i><br>
+                        No state traffic data available
+                    </div>
+                `;
+                return;
+            }
+            
+            const sortedStates = Object.entries(dashboardData.states)
+                .sort((a, b) => b[1] - a[1]);
+            
+            const maxVolume = Math.max(...Object.values(dashboardData.states));
+            
+            sortedStates.forEach(([state, volume]) => {
+                const percentage = maxVolume > 0 ? Math.round((volume / maxVolume) * 100) : 0;
+                
+                container.innerHTML += `
+                    <div class="bg-white rounded-lg p-3 border border-gray-200 shadow hover:shadow-md transition-all duration-200">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="font-bold text-gray-800">${state}</div>
+                                <div class="text-xs text-gray-500">State Volume</div>
+                            </div>
+                            <div class="text-xl font-bold text-blue-600">${volume}</div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-1.5 rounded-full" 
+                                 style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="text-right text-xs text-gray-500 mt-1">${percentage}% of peak</div>
+                    </div>
+                `;
+            });
+        }
+        
+        // Modal functions
+        function openTrafficModal() {
+            renderStates();
+            document.getElementById('trafficModal').classList.remove('hidden');
+            document.getElementById('trafficModal').classList.add('flex');
+        }
+        
+        function closeTrafficModal() {
+            document.getElementById('trafficModal').classList.add('hidden');
+            document.getElementById('trafficModal').classList.remove('flex');
+        }
+        
+        // Firebase listeners
+        firebase.database().ref("dashboard/live").on("value", snapshot => {
+            const data = snapshot.val();
+            if (data) {
+                dashboardData = processFirebaseData(data);
+                console.log("Dashboard data loaded:", dashboardData);
+                
+                // Update both panels
+                updateAgentMetrics();
+                renderTeamData();
+                updateSidebarTime();
+            }
+        });
+        
+        firebase.database().ref("dashboard/raw").on("value", snapshot => {
+            const data = snapshot.val();
+            if (data) {
+                rawSubmissionsData = data;
+                console.log("Raw submissions loaded:", rawSubmissionsData);
+                
+                // Update both panels
+                if (currentPanel === 'agent') {
+                    renderAgentSubmissions();
+                } else if (currentView === 'submissions') {
+                    renderLiveSubmissions();
+                }
+            }
+        });
+        
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default panel
+            switchPanel('team');
+            
+            // Set default filter button as active
+            setTimeout(() => {
+                document.querySelector('.campaign-btn.active').click();
+                document.querySelector('.view-btn.active').click();
+            }, 100);
+            
+            // Update sidebar time every minute
+            setInterval(updateSidebarTime, 60000);
+            updateSidebarTime();
+        });
+        
+        // Close modal on outside click
+        document.getElementById('trafficModal').addEventListener('click', (e) => {
+            if (e.target.id === 'trafficModal') {
+                closeTrafficModal();
+            }
+        });
+    </script>
+</body>
+</html>
